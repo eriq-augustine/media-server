@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+{% load staticfiles %}
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+   <link rel="stylesheet" href="{% static 'mediaserver/style/vendor/bootstrap.css' %}" />
+   <link rel="stylesheet" href="{% static 'mediaserver/style/base_style.css' %}" />
+
+   <script src="{% static 'mediaserver/js/vendor/jquery-2.0.3.min.js' %}"></script>
+   <script src="{% static 'mediaserver/js/base.js' %}"></script>
+
+   {% block additional-head %}
+   {% endblock %}
+
+   <title>
+      Media Server
+      {% block title %}
+      {% endblock %}
+   </title>
+</head>
+<body>
+   <div class='page'>
+      <div class ='header'>
+         <div class ='nav'>
+            {# TODO(eriq): NAV #}
+            {#
+            {% if user.is_authenticated %}
+               <a href='{% url 'auth_logout' %}'>Logout</a>
+               <a href='{% url 'home' %}'>Home</a>
+            {% else %}
+               <a href='{% url 'auth_login' %}'>Login</a>
+               <a href='{% url 'registration_register' %}'>Register</a>
+            {% endif %}
+            #}
+         </div>
+      </div>
+      <div class='page-content'>
+         {% if messages %}
+            <div class='flash-message-area'>
+               <ul class='flash-messages'>
+                  {% for message in messages %}
+                     <li {% if message.tags %} class="flash-message flash-{{ message.tags }}" {% endif %}>
+                        {{ message }}
+                     </li>
+                  {% endfor %}
+               </ul>
+            </div>
+         {% endif %}
+         <div class='page-title'>
+            <h1>
+               {% block page-title %}
+               {% endblock %}
+            </h1>
+         </div>
+         <div class='content'>
+            {% block content %}
+            {% endblock %}
+         </div>
+      </div>
+   </div>
+   <div class='footer'>
+      {# TODO(eriq): Colophon #}
+   </div>
+</body>
+
+</html>

@@ -1,0 +1,159 @@
+html, body {
+   height: 100%;
+   width: 100%;
+   background: rgb(231, 231, 231);
+}
+
+h2 {
+   font-size: 26px;
+}
+
+hr {
+   border-top: 2px solid #888888;
+}
+
+.nav a {
+   margin-right: 15px;
+}
+
+.header {
+   background: rgb(199, 199, 199);
+   padding: 5px 10px 5px 10px;
+   box-shadow: 1px 1px 2px rgb(90, 90, 90)
+}
+
+.page-content {
+   width: 100%;
+   padding: 20px;
+}
+
+.page-title h1 {
+   text-align: center;
+   margin: 0;
+}
+
+.content {
+   margin-right: auto;
+   margin-left: auto;
+   text-align: center;
+}
+
+.mediaserver-table-area {
+   margin-top: 10px;
+}
+
+.mediaserver-table {
+   margin-left: auto;
+   margin-right: auto;
+}
+
+.mediaserver-table tr {
+}
+
+.mediaserver-table td,
+.mediaserver-table th {
+   text-align: center;
+   padding-right: 30px;
+}
+
+.panel-row-details td {
+   font-size: 12px;
+   padding-bottom: 10px;
+   border-bottom: solid 1px #888;
+}
+
+.panel-row td:last-child {
+   padding-right: 0;
+}
+
+.panel-forms-container {
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 10px;
+}
+
+.panel-form-area {
+   display: inline-block;
+   vertical-align: top;
+   width: 500px;
+}
+
+.flash-messages {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+}
+
+.flash-message {
+   margin: 5px;
+   padding: 5px;
+   text-align: center;
+   border-radius: 7px;
+   box-shadow: 1px 1px 1px #888;
+}
+
+.flash-success {
+   background: rgb(112, 224, 112);
+}
+
+.flash-warning {
+   background: rgb(247, 247, 111);
+}
+
+.flash-error {
+   background: rgb(253, 152, 170);
+}
+
+input[type="submit"] {
+   margin-top: 10px;
+}
+
+.auto-enable-field {
+}
+
+.enable-switch {
+}
+
+.fix-prompt {
+   margin: 10px;
+   font-weight: bold;
+   font-size: 18px;
+}
+
+.error, .errorlist {
+   color: red;
+}
+
+.errorlist {
+   margin: 10px;
+}
+
+.form-group {
+   padding: 20px;
+   border: solid 1px #888;
+}
+
+.form-item {
+   text-align: left;
+   margin-bottom: 10px;
+}
+
+.form-item label {
+}
+
+.form-item input,
+.form-item select,
+.form-item textarea {
+}
+
+.form-item textarea {
+   display: block;
+}
+
+.form-subtext {
+   font-size: 12px;
+}
+
+.form-subtext p {
+   margin: 0;
+}
