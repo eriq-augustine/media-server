@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block additional-head %}
+{% endblock %}
+
+{% block title %}
+   View {{ name }}
+{% endblock %}
+
+{% block page-title %}
+   {{ name }}
+{% endblock %}
+
+{% block content %}
+   <hr />
+   <img src='{% url 'raw' path %}' title='{{ name }}' alt='{{ name }}'>
+{% endblock %}

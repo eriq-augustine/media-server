@@ -92,4 +92,10 @@ EXTENSIONS = {
    'txt': {'mime': 'text/plain', 'template': 'mediaserver/text_file.html'},
    'mp3': {'mime': 'audio/mpeg', 'template': 'mediaserver/audio_file.html'},
    'mp4': {'mime': 'video/mp4', 'template': 'mediaserver/video_file.html'},
+   'jpg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
+   'jpeg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
+   'png': {'mime': 'image/png', 'template': 'mediaserver/image_file.html'},
+   'gif': {'mime': 'image/gif', 'template': 'mediaserver/image_file.html'},
+   'tiff': {'mime': 'image/tiff', 'template': 'mediaserver/image_file.html'},
+   'svg': {'mime': 'image/svg+xml', 'template': 'mediaserver/image_file.html'},
 }
