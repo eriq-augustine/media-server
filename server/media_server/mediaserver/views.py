@@ -71,22 +71,11 @@ def view(request, urlpath):
 # TODO(eriq): Need to convert paths back to url paths before render.
 #  Windows will have a problem.
 def browse(request, urlpath = ''):
-   #TEST
-   request.META['wsgi.errors'].write('TEST0\n')
-   path = Path.from_urlpath(urlpath)
-
    try:
       path = Path.from_urlpath(urlpath)
    except OutOfRootException:
-      #TEST
-      request.META['wsgi.errors'].write('TEST1\n')
-
       raise Http404
    except PathDoesntExistsException as err:
-      #TEST
-      request.META['wsgi.errors'].write('TEST2\n')
-      request.META['wsgi.errors'].write(err.path + '\n')
-
       raise Http404
 
    if path.is_file():
