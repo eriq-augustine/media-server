@@ -60,7 +60,8 @@ def view(request, urlpath):
       'path': path.urlpath(),
       'name': path.display_name(),
       'parent': path.parent().urlpath(),
-      'type': ext
+      'type': ext,
+      'breadcrumbs': fileutils.build_breadcrumbs(path)
    }
 
    if ext in EXTENSIONS:

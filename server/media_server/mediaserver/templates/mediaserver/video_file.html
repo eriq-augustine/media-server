@@ -1,20 +1,6 @@
-{% extends "base.html" %}
+{% extends "mediaserver/base_file.html" %}
 
-{% load staticfiles %}
-
-{% block additional-head %}
-{% endblock %}
-
-{% block title %}
-   View {{ name }}
-{% endblock %}
-
-{% block page-title %}
-   {{ name }}
-{% endblock %}
-
-{% block content %}
-   <hr />
+{% block file-content %}
    <video controls>
       <source src='{% url 'raw' path %}' type='{{ mime }}'>
       Browser not supported.

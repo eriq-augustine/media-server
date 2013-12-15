@@ -112,4 +112,5 @@ EXTENSIONS = {
    'gif': {'mime': 'image/gif', 'template': 'mediaserver/image_file.html'},
    'tiff': {'mime': 'image/tiff', 'template': 'mediaserver/image_file.html'},
    'svg': {'mime': 'image/svg+xml', 'template': 'mediaserver/image_file.html'},
+   'pdf': {'mime': 'application/pdf', 'template': 'mediaserver/text_file.html'},
 }

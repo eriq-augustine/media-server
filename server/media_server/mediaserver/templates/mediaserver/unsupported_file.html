@@ -1,18 +1,5 @@
-{% extends "base.html" %}
+{% extends "mediaserver/base_file.html" %}
 
-{% load staticfiles %}
-
-{% block additional-head %}
-{% endblock %}
-
-{% block title %}
-   View {{ name }}
-{% endblock %}
-
-{% block page-title %}
-   {{ path }}
-{% endblock %}
-
-{% block content %}
+{% block file-content %}
    <h2>File type ({{ type }}) is not supported.</h2>
 {% endblock %}
