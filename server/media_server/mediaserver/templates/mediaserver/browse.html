@@ -10,27 +10,35 @@
 {% endblock %}
 
 {% block page-title %}
-   {{ path }}
+   {{ dir_name }}
 {% endblock %}
 
 {% block content %}
+   <hr />
+
    <div class='browse-area'>
-      <div class='browse-dir-area'>
-         {% for dir in dirs %}
-            <div class='dir-entry dir'>
-               <a href='{% url 'browse' dir.path %}'>{{ dir.name }}</a>
-            </div>
-         {% endfor %}
-      </div>
+      {% if dirs %}
+         <div class='browse-dir-area'>
+            {% for dir in dirs %}
+               <div class='dir-entry dir'>
+                  <a href='{% url 'browse' dir.path %}'>{{ dir.name }}</a>
+               </div>
+            {% endfor %}
+         </div>
 
-      <hr />
+         {% if files %}
+            <hr />
+         {% endif %}
+      {% endif %}
 
-      <div class='browse-file-area'>
-         {% for file in files %}
-            <div class='dir-entry file file-type-{{ file.type }}'>
-               <a href='{% url 'view' file.path %}'>{{ file.name }}</a>
-            </div>
-         {% endfor %}
-      </div>
+      {% if files %}
+         <div class='browse-file-area'>
+            {% for file in files %}
+               <div class='dir-entry file file-type-{{ file.type }}'>
+                  <a href='{% url 'view' file.path %}'>{{ file.name }}</a>
+               </div>
+            {% endfor %}
+         </div>
+      {% endif %}
    </div>
 {% endblock %}

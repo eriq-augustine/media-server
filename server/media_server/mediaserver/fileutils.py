@@ -84,7 +84,7 @@ class Path:
       if self.is_dir():
          return ''
 
-      return re.sub(r'^\.', '', os.path.splitext(self._abs_syspath)[1])
+      return re.sub(r'^\.', '', os.path.splitext(self._abs_syspath)[1]).lower()
 
    def join(self, child):
       return Path.from_abs_syspath(os.path.join(self._abs_syspath, child))
@@ -106,6 +106,9 @@ EXTENSIONS = {
    'txt': {'mime': 'text/plain', 'template': 'mediaserver/text_file.html'},
    'mp3': {'mime': 'audio/mpeg', 'template': 'mediaserver/audio_file.html'},
    'mp4': {'mime': 'video/mp4', 'template': 'mediaserver/video_file.html'},
+   'm4v': {'mime': 'video/mp4', 'template': 'mediaserver/video_file.html'},
+   'ogv': {'mime': 'video/ogg', 'template': 'mediaserver/video_file.html'},
+   'webm': {'mime': 'video/webm', 'template': 'mediaserver/video_file.html'},
    'jpg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
    'jpeg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
    'png': {'mime': 'image/png', 'template': 'mediaserver/image_file.html'},
