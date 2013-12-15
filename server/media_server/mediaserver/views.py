@@ -1,4 +1,5 @@
 from fileutils import EXTENSIONS, Path, OutOfRootException, PathDoesntExistsException
+import fileutils
 
 from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
@@ -106,7 +107,8 @@ def browse(request, urlpath = ''):
       'dir_name': path.display_name(),
       'parent': path.parent().urlpath(),
       'dirs': sorted(dirs, key = itemgetter('name')),
-      'files': sorted(files, key = itemgetter('name'))
+      'files': sorted(files, key = itemgetter('name')),
+      'breadcrumbs': fileutils.build_breadcrumbs(path)
    }
 
    return render(request, 'mediaserver/browse.html', context)

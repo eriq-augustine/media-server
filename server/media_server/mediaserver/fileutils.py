@@ -75,6 +75,9 @@ class Path:
       return self._is_file
 
    def display_name(self):
+      if self.is_root():
+         return '/'
+
       return os.path.basename(self._abs_syspath)
 
    def ext(self):
@@ -85,6 +88,17 @@ class Path:
 
    def join(self, child):
       return Path.from_abs_syspath(os.path.join(self._abs_syspath, child))
+
+# Start at |path| and go back all the way to root.
+def build_breadcrumbs(path):
+   crumbs = [{'name': path.display_name(), 'path': path.urlpath()}]
+
+   while not path.is_root():
+      path = path.parent()
+      crumbs.append({'name': path.display_name(), 'path': path.urlpath()})
+
+   crumbs.reverse()
+   return crumbs
 
 EXTENSIONS = {
    # Default none to text.

@@ -25,6 +25,18 @@
       <div class ='header'>
          <div class ='nav'>
             {# TODO(eriq): NAV #}
+            {% if breadcrumbs %}
+               <div class='breadcrumbs'>
+                  {% for crumb in breadcrumbs %}
+                     <span class='breancrumb'>
+                        <a href='{% url 'browse' crumb.path %}'>{{ crumb.name }}</a>
+                        {% if not forloop.last %}
+                           >>
+                        {% endif %}
+                     </span>
+                  {% endfor %}
+               </div>
+            {% endif %}
          </div>
       </div>
       <div class='page-content'>
