@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block additional-head %}
+{% endblock %}
+
+{% block title %}
+   Browse {{ dir_name }}
+{% endblock %}
+
+{% block page-title %}
+   {{ path }}
+{% endblock %}
+
+{% block content %}
+   <div class='browse-area'>
+      <div class='browse-dir-area'>
+         {% for dir in dirs %}
+            <div class='dir-entry dir'>
+               <a href='{% url 'browse' dir.path %}'>{{ dir.name }}</a>
+            </div>
+         {% endfor %}
+      </div>
+
+      <hr />
+
+      <div class='browse-file-area'>
+         {% for file in files %}
+            <div class='dir-entry file file-type-{{ file.type }}'>
+               <a href='{% url 'view' file.path %}'>{{ file.name }}</a>
+            </div>
+         {% endfor %}
+      </div>
+   </div>
+{% endblock %}

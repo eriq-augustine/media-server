@@ -111,3 +111,6 @@ STATICFILES_FINDERS = (
 ROOT_DIR = os.path.abspath(os.path.realpath('/media/media/bittorent/downloads'))
 
 CACHE_DIR = os.path.abspath(os.path.realpath('cache'))
+
+# TODO(eriq): This should be set to the proper deployed url.
+FILE_SERVER = '127.0.0.1:3030'

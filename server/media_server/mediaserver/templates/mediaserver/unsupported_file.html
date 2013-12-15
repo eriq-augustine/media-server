@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block additional-head %}
+{% endblock %}
+
+{% block title %}
+   View {{ name }}
+{% endblock %}
+
+{% block page-title %}
+   {{ path }}
+{% endblock %}
+
+{% block content %}
+   <h2>File type ({{ type }}) is not supported.</h2>
+{% endblock %}

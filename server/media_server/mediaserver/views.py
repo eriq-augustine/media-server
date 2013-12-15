@@ -1,30 +1,123 @@
-from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.conf import settings
+from fileutils import EXTENSIONS, Path, OutOfRootException, PathDoesntExistsException
 
-import os.path
+from django.conf import settings
+from django.core.servers.basehttp import FileWrapper
+from django.core.urlresolvers import reverse
+from django.http import Http404, HttpResponse, HttpResponseRedirect, StreamingHttpResponse
+from django.shortcuts import render, redirect
+
+from operator import itemgetter
+import os
+import sys
 
 def index(request):
-    return HttpResponse("TODO(eriq): index.")
+   return HttpResponse("TODO(eriq): index.")
 
 def home(request):
-    return HttpResponse("TODO(eriq): home.")
+   return HttpResponse("TODO(eriq): home.")
 
-def browse(request, path):
-    print path
-    print settings.ROOT_DIR
-    print settings.CACHE_DIR
+def raw(request, urlpath):
+   try:
+      path = Path.from_urlpath(urlpath)
+   except OutOfRootException:
+      raise Http404
+   except PathDoesntExistsException:
+      raise Http404
 
-    target_path = os.path.join(settings.ROOT_DIR, path)
-    target_path = os.path.realpath(target_path)
+   if path.is_dir():
+      return HttpResponseRedirect(reverse('browse', args = [path.urlpath()]))
 
-    if not target_path.startswith(settings.ROOT_DIR):
-        raise Http404
+   ext = path.ext()
 
-    # TODO(eriq): Redirect to viewing this file.
-    if not os.path.isdir(target_path):
-        raise Http404
+   if not ext in EXTENSIONS:
+      raise Http404
 
-    for dir_ent in os.listdir(target_path):
-        print dir_ent
+   mime = EXTENSIONS[ext]['mime']
 
-    return HttpResponse("TODO(eriq): browse: {}".format(path))
+   if not mime:
+      raise Http404
+
+   address = "http://{}/{}".format(settings.FILE_SERVER, path.urlpath())
+
+   return redirect(address)
+
+def view(request, urlpath):
+   try:
+      path = Path.from_urlpath(urlpath)
+   except OutOfRootException:
+      raise Http404
+   except PathDoesntExistsException:
+      raise Http404
+
+   if path.is_dir():
+      return HttpResponseRedirect(reverse('browse', args = [path.urlpath()]))
+
+   ext = path.ext()
+
+   context = {
+      'full_path': path.syspath(),
+      'path': path.urlpath(),
+      'name': path.display_name(),
+      'parent': path.parent().urlpath(),
+      'type': ext
+   }
+
+   if ext in EXTENSIONS:
+      context['mime'] = EXTENSIONS[ext]['mime']
+      return render(request, EXTENSIONS[ext]['template'], context)
+
+   return render(request, 'mediaserver/unsupported_file.html', context)
+
+# TODO(eriq): Need to convert paths back to url paths before render.
+#  Windows will have a problem.
+def browse(request, urlpath = ''):
+   #TEST
+   request.META['wsgi.errors'].write('TEST0\n')
+   path = Path.from_urlpath(urlpath)
+
+   try:
+      path = Path.from_urlpath(urlpath)
+   except OutOfRootException:
+      #TEST
+      request.META['wsgi.errors'].write('TEST1\n')
+
+      raise Http404
+   except PathDoesntExistsException as err:
+      #TEST
+      request.META['wsgi.errors'].write('TEST2\n')
+      request.META['wsgi.errors'].write(err.path + '\n')
+
+      raise Http404
+
+   if path.is_file():
+      return HttpResponseRedirect(reverse('view', args = [path.urlpath()]))
+
+   dirs = []
+   files = []
+
+   for dir_ent in os.listdir(path.syspath()):
+      dir_ent_path = path.join(dir_ent)
+
+      if dir_ent_path.is_dir():
+         dirs.append({'name': dir_ent_path.display_name(),
+                      'path': dir_ent_path.urlpath()})
+      else:
+         ext = dir_ent_path.ext()
+
+         if len(ext) == 0:
+            ext = 'txt'
+
+         files.append({'path': dir_ent_path.urlpath(),
+                       'name': dir_ent_path.display_name(),
+                       'type': ext})
+
+   context = {
+      'full_path': path.syspath(),
+      'path': path.urlpath(),
+      'dir_name': path.display_name(),
+      'parent': path.parent().urlpath(),
+      'dirs': sorted(dirs, key = itemgetter('name')),
+      'files': sorted(files, key = itemgetter('name'))
+   }
+
+   return render(request, 'mediaserver/browse.html', context)
