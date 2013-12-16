@@ -9,4 +9,5 @@ urlpatterns = patterns('',
    url(r'^browse/(?P<urlpath>.*)/?$', views.browse, name = 'browse'),
    url(r'^view/(?P<urlpath>.*)/?$', views.view, name = 'view'),
    url(r'^raw/(?P<urlpath>.*)/?$', views.raw, name = 'raw'),
+   url(r'^cache/(?P<urlpath>.*)/?$', views.cache, name = 'cache'),
 )

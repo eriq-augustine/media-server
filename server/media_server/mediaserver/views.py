@@ -1,5 +1,6 @@
-from fileutils import EXTENSIONS, Path, OutOfRootException, PathDoesntExistsException
+from fileutils import EXTENSIONS, Path, UnsafePath, OutOfRootException, PathDoesntExistsException
 import fileutils
+import encode
 
 from django.conf import settings
 from django.core.servers.basehttp import FileWrapper
@@ -16,6 +17,27 @@ def index(request):
 
 def home(request):
    return HttpResponse("TODO(eriq): home.")
+
+# TODO(eriq): Error handle this.
+def cache(request, urlpath):
+   # HACK(eriq): Don't use unsafe path.
+   #  It is safe, just not rooted in the media dir.
+
+   path = UnsafePath.from_urlpath(urlpath)
+
+   ext = path.ext()
+
+   if not ext in EXTENSIONS:
+      raise Http404
+
+   mime = EXTENSIONS[ext]['mime']
+
+   if not mime:
+      raise Http404
+
+   address = "http://{}/{}".format(settings.CACHE_SERVER, urlpath)
+
+   return redirect(address)
 
 def raw(request, urlpath):
    try:
@@ -65,8 +87,24 @@ def view(request, urlpath):
    }
 
    if ext in EXTENSIONS:
-      context['mime'] = EXTENSIONS[ext]['mime']
-      return render(request, EXTENSIONS[ext]['template'], context)
+      # Check if this format needs an encode.
+      if 'encode' in EXTENSIONS[ext]:
+         # Check if the file is cached.
+         cache = encode.get_cache(path)
+         if cache:
+            context['mime'] = EXTENSIONS[ext]['mime']
+            context['path'] = cache.urlpath
+            context['cache'] = True
+            context['encode'] = EXTENSIONS[ext]['encode']
+            return render(request, EXTENSIONS[ext]['encode_template'], context)
+         elif not encode.is_queued(path):
+            encode.queue(path)
+            return render(request, EXTENSIONS[ext]['template'], context)
+         else:
+            return render(request, EXTENSIONS[ext]['template'], context)
+      else:
+         context['mime'] = EXTENSIONS[ext]['mime']
+         return render(request, EXTENSIONS[ext]['template'], context)
 
    return render(request, 'mediaserver/unsupported_file.html', context)
 

@@ -18,26 +18,29 @@ class PathDoesntExistsException(Exception):
 
 # Represents a path from the user's perspective.
 # Construct with the static methods.
+# Anything that faces the user should use Path. UnsafePath should be used rarely.
 # TODO(eriq): I feel like the comparisons to the ROOT_DIR is a bit fragile.
-class Path:
+# TODO(eriq): It is possible to get an unsafe path from a safe path because of some of the
+#  returns in this class. Need one more level (BasePath, or something) to fix it.
+class UnsafePath:
    _abs_syspath = ''
    _is_file = True
+   _ext = ''
 
    def __init__(self, abs_syspath):
-      if not abs_syspath.startswith(settings.ROOT_DIR):
-         raise OutOfRootException('Path extends before root: ' + abs_syspath)
-
-      if not os.path.exists(abs_syspath):
-         raise PathDoesntExistsException(abs_syspath)
-
       self._abs_syspath = abs_syspath
 
       if (os.path.isdir(abs_syspath)):
          self._is_file = False
 
+      if self.is_dir():
+         self._ext = ''
+      else:
+         self._ext = re.sub(r'^\.', '', os.path.splitext(self._abs_syspath)[1]).lower()
+
    @staticmethod
    def from_abs_syspath(syspath):
-      return Path(os.path.realpath(syspath))
+      return UnsafePath(os.path.realpath(syspath))
 
    @staticmethod
    def from_urlpath(urlpath):
@@ -48,7 +51,7 @@ class Path:
       syspath = urlpath.replace('/', os.sep)
       syspath = os.path.join(settings.ROOT_DIR, syspath)
 
-      return Path.from_abs_syspath(syspath)
+      return UnsafePath.from_abs_syspath(syspath)
 
    def syspath(self):
       return self._abs_syspath
@@ -66,7 +69,7 @@ class Path:
       else:
          parent_path = os.path.abspath(os.path.join(self._abs_syspath, os.pardir))
 
-      return Path.from_abs_syspath(parent_path)
+      return UnsafePath.from_abs_syspath(parent_path)
 
    def is_dir(self):
       return not self._is_file
@@ -81,13 +84,36 @@ class Path:
       return os.path.basename(self._abs_syspath)
 
    def ext(self):
-      if self.is_dir():
-         return ''
-
-      return re.sub(r'^\.', '', os.path.splitext(self._abs_syspath)[1]).lower()
+      return self._ext
 
    def join(self, child):
-      return Path.from_abs_syspath(os.path.join(self._abs_syspath, child))
+      return UnsafePath.from_abs_syspath(os.path.join(self._abs_syspath, child))
+
+# Like UnsafePath, but it has additional checks.
+class Path(UnsafePath):
+   def __init__(self, abs_syspath):
+      UnsafePath.__init__(self, abs_syspath)
+
+      if not abs_syspath.startswith(settings.ROOT_DIR):
+         raise OutOfRootException('Path extends before root: ' + abs_syspath)
+
+      if not os.path.exists(abs_syspath):
+         raise PathDoesntExistsException(abs_syspath)
+
+   @staticmethod
+   def from_abs_syspath(syspath):
+      return Path(os.path.realpath(syspath))
+
+   @staticmethod
+   def from_urlpath(urlpath):
+      if urlpath == '':
+         urlpath = settings.ROOT_DIR
+
+      # Replace the url slashes with whatever the seperator is on the system.
+      syspath = urlpath.replace('/', os.sep)
+      syspath = os.path.join(settings.ROOT_DIR, syspath)
+
+      return Path.from_abs_syspath(syspath)
 
 # Start at |path| and go back all the way to root.
 def build_breadcrumbs(path):
@@ -105,9 +131,11 @@ EXTENSIONS = {
    '': {'mime': 'text/plain', 'template': 'mediaserver/text_file.html'},
    'txt': {'mime': 'text/plain', 'template': 'mediaserver/text_file.html'},
    'mp3': {'mime': 'audio/mpeg', 'template': 'mediaserver/audio_file.html'},
+   'ogg': {'mime': 'audio/ogg', 'template': 'mediaserver/audio_file.html'},
    'mp4': {'mime': 'video/mp4', 'template': 'mediaserver/video_file.html'},
    'm4v': {'mime': 'video/mp4', 'template': 'mediaserver/video_file.html'},
    'ogv': {'mime': 'video/ogg', 'template': 'mediaserver/video_file.html'},
+   'ogx': {'mime': 'video/ogg', 'template': 'mediaserver/video_file.html'},
    'webm': {'mime': 'video/webm', 'template': 'mediaserver/video_file.html'},
    'jpg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
    'jpeg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
@@ -116,4 +144,8 @@ EXTENSIONS = {
    'tiff': {'mime': 'image/tiff', 'template': 'mediaserver/image_file.html'},
    'svg': {'mime': 'image/svg+xml', 'template': 'mediaserver/image_file.html'},
    'pdf': {'mime': 'application/pdf', 'template': 'mediaserver/text_file.html'},
+   # Formats that need conversion.
+   'avi': {'encode': 'mp4', 'mime': 'video/mp4',
+           'template': 'mediaserver/encode_file.html',
+           'encode_template': 'mediaserver/video_file.html'},
 }
