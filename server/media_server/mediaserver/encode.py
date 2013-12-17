@@ -30,31 +30,24 @@ def queue(path):
    queue_item = EncodeQueue(src = path.syspath(), hash = hash_path(path))
    queue_item.save()
 
+   global encode_thread
+
    try:
       encode_thread
    except NameError:
-      global encode_thread
       encode_thread = None
 
-   #TEST
-   print 'TEST0'
-
    if encode_thread == None:
-      #TEST
-      print 'TEST1'
-
       encode_thread = threading.Thread(target = process_queue)
       encode_thread.setDaemon(True)
       encode_thread.start()
 
 def process_queue():
-   #TEST
-   print 'TEST2'
-
    while (has_next_encode()):
       next_encode()
 
    # HACK(eriq): Race condition here.
+   global encode_thread
    encode_thread = None
 
 def hash_path(path):
@@ -130,13 +123,7 @@ def encode_file(path, original_hash, target_path):
    args += ['-ac', '1']
    args += ['-strict', '-2']
 
-   if path.ext() == 'avi':
-      args += ['-acodec', 'libvorbis']
-
    # Always encode to mp4 since ffmpeg can multi-process well with mp4.
    args += [target_path.syspath()]
-
-   #TEST
-   print args
 
    return subprocess.call(args)

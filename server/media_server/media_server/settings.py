@@ -117,9 +117,10 @@ TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')
 ENCODE_CACHE_DIR = os.path.join(CACHE_DIR, 'encode')
 
 # TODO(eriq): This should be set to the proper deployed url.
-# FILE_SERVER = '127.0.0.1:3030'
-FILE_SERVER = '192.168.1.169:3030'
-CACHE_SERVER = '192.168.1.169:4040'
+#FILE_SERVER = '192.168.1.169:3030'
+#CACHE_SERVER = '192.168.1.169:4040'
+FILE_SERVER = '71.84.26.224:3030'
+CACHE_SERVER = '71.84.26.224:4040'
 
 FFMPEG_PATH = '/usr/bin/ffmpeg'
 ENCODING_THREADS = '{}'.format(multiprocessing.cpu_count())
