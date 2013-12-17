@@ -110,7 +110,8 @@ STATICFILES_FINDERS = (
 )
 
 # Project constants.
-ROOT_DIR = os.path.abspath(os.path.realpath('/media/media/bittorent/downloads'))
+#ROOT_DIR = os.path.abspath(os.path.realpath('/media/media/bittorent/downloads'))
+ROOT_DIR = os.path.abspath(os.path.realpath('/media/nas'))
 
 CACHE_DIR = os.path.abspath(os.path.realpath('cache'))
 TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')

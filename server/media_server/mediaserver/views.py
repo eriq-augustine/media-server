@@ -125,7 +125,10 @@ def browse(request, urlpath = ''):
    files = []
 
    for dir_ent in os.listdir(path.syspath()):
-      dir_ent_path = path.join(dir_ent)
+      dir_ent_path = path.safe_join(dir_ent)
+
+      if dir_ent_path.is_hidden():
+        continue
 
       if dir_ent_path.is_dir():
          dirs.append({'name': dir_ent_path.display_name(),

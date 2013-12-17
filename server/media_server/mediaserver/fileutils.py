@@ -115,6 +115,12 @@ class Path(UnsafePath):
 
       return Path.from_abs_syspath(syspath)
 
+   def is_hidden(self):
+      return os.path.basename(self._abs_syspath).startswith('.')
+
+   def safe_join(self, child):
+      return Path.from_abs_syspath(os.path.join(self._abs_syspath, child))
+
 # Start at |path| and go back all the way to root.
 def build_breadcrumbs(path):
    crumbs = [{'name': path.display_name(), 'path': path.urlpath()}]
