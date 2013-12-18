@@ -1,0 +1,7 @@
+{% extends "mediaserver/base_file.html" %}
+
+{% block file-content %}
+   <iframe src='{% url 'raw' path %}'>
+      Browser not supported.
+   </iframe>
+{% endblock %}

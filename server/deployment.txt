@@ -1,0 +1,23 @@
+First, start the virtualenv:
+bin/activate
+
+Run gunicorn:
+   Manually:
+      sudo su media
+      bin/gunicorn_start.sh
+   Automatically:
+      I use a systemd unit to automatically run and restart the gunicorn server.
+      systemd config: config/gunicorn-mediaserver.service
+
+Then you need to configure the webserver.
+You will need to reverse proxy the gunicorn django server, as well as serve the static and media files.
+I use nginx. The configuration is in config/nginx.conf.
+Both the 'media' and 'static/mediaserver' are symlinks to the actual data.
+I then server both of those directories (symlinks) via nginx.
+
+Logs from gunicorn and nginx are all sent to the logs directory.
+
+References:
+   stack: http://michal.karzynski.pl/blog/2013/06/09/django-nginx-gunicorn-virtualenv-supervisor/
+   additional stack: http://goodcode.io/blog/django-nginx-gunicorn/
+   systemd: http://blog.serverbeep.com/tag/gunicorn/
