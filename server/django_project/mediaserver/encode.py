@@ -8,6 +8,7 @@ import hashlib
 import os.path
 import shutil
 import subprocess
+
 import threading
 
 # Get some details on the cache and queue for display to the user.
@@ -68,7 +69,6 @@ def queue(path):
 
    if encode_thread == None:
       encode_thread = threading.Thread(target = process_queue)
-      encode_thread.setDaemon(True)
       encode_thread.start()
 
 def process_queue():
@@ -89,7 +89,7 @@ def has_next_encode():
 
 def next_encode():
    try:
-      encode_task = EncodeQueue.objects.latest('queue_time')
+      encode_task = EncodeQueue.objects.earliest('queue_time')
    except EncodeQueue.DoesNotExist:
       return False
 
