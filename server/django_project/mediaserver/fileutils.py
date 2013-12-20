@@ -157,8 +157,15 @@ EXTENSIONS = {
    'pdf': {'mime': 'application/pdf', 'template': 'mediaserver/text_file.html'},
 
    'html': {'mime': 'text/html', 'template': 'mediaserver/html_file.html'},
-   # Formats that need conversion.
+
+   # Formats that require conversion.
    'avi': {'encode': 'mp4', 'mime': 'video/mp4',
+           'template': 'mediaserver/encode_file.html',
+           'encode_template': 'mediaserver/video_file.html'},
+   'flv': {'encode': 'mp4', 'mime': 'video/mp4',
+           'template': 'mediaserver/encode_file.html',
+           'encode_template': 'mediaserver/video_file.html'},
+   'mkv': {'encode': 'mp4', 'mime': 'video/mp4',
            'template': 'mediaserver/encode_file.html',
            'encode_template': 'mediaserver/video_file.html'},
 }

@@ -39,7 +39,11 @@
             {% endif %}
          </div>
       </div>
-      <div class='page-content'>
+      {% if encode_details.encode_queue or encode_details.recent_cache %}
+         <div class='page-content page-content-narrow'>
+      {% else %}
+         <div class='page-content'>
+      {% endif %}
          {% if messages %}
             <div class='flash-message-area'>
                <ul class='flash-messages'>
@@ -62,6 +66,44 @@
             {% endblock %}
          </div>
       </div>
+      {% if encode_details.encode_queue or encode_details.recent_cache %}
+         <div class='right-pane'>
+            {% if encode_details.encode_queue %}
+               <div class='encode-queue'>
+                  <p>Encode Queue</p>
+                  {% for encode in encode_details.encode_queue %}
+                     <div class='encode-item'>
+                        <div class='encode-item-name'>
+                           <a href='{% url 'view' encode.path %}'>{{ encode.name }}</a>
+                        </div>
+                        <div class='encode-item-time'>
+                           {{ encode.time }}
+                        </div>
+                     </div>
+                  {% endfor %}
+               </div>
+
+               {% if encode_details.recent_cache %}
+                  <hr />
+               {% endif %}
+            {% endif %}
+            {% if encode_details.recent_cache %}
+               <div class='recent-cache'>
+                  <p>Recent Cache</p>
+                  {% for encode in encode_details.recent_cache %}
+                     <div class='encode-item'>
+                        <div class='encode-item-name'>
+                           <a href='{% url 'view' encode.path %}'>{{ encode.name }}</a>
+                        </div>
+                        <div class='encode-item-time'>
+                           {{ encode.time }}
+                        </div>
+                     </div>
+                  {% endfor %}
+               </div>
+            {% endif %}
+         </div>
+      {% endif %}
    </div>
    <div class='footer'>
       {# TODO(eriq): Colophon #}

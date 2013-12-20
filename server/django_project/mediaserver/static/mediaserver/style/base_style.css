@@ -23,8 +23,41 @@ hr {
 }
 
 .page-content {
+   display: inline-block;
+   vertical-align: top;
    width: 100%;
    padding: 20px;
+}
+
+.page-content-narrow {
+   width: 75%;
+}
+
+.right-pane {
+   width: 24%;
+   vertical-align: top;
+   display: inline-block;
+   padding: 10px;
+   border-left: #888 dotted 2px;
+}
+
+.encode-queue,
+.recent-cache {
+}
+
+.encode-queue p,
+.recent-cache p {
+   text-align: center;
+   font-size: 16px;
+   font-weight: bold;
+}
+
+.encode-item-name {
+   text-align: left;
+}
+
+.encode-item-time {
+   text-align: right;
 }
 
 .page-title h1 {

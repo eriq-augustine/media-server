@@ -10,6 +10,35 @@ import shutil
 import subprocess
 import threading
 
+# Get some details on the cache and queue for display to the user.
+def get_display_details():
+   return {'encode_queue': get_encode_queue_items(10),
+           'recent_cache': get_recent_cache_items(10)}
+
+def get_encode_queue_items(num):
+   rtn = []
+   items = EncodeQueue.objects.filter().order_by('queue_time', 'src')[:num]
+
+   for item in items:
+      path = Path.from_abs_syspath(item.src)
+      rtn.append({'name': path.display_name(),
+                  'path': path.urlpath(),
+                  'time': item.queue_time})
+
+   return rtn
+
+def get_recent_cache_items(num):
+   rtn = []
+   items = Cache.objects.filter().order_by('-cache_time', 'urlpath')[:num]
+
+   for item in items:
+      path = Path.from_abs_syspath(item.src)
+      rtn.append({'name': path.display_name(),
+                  'path': path.urlpath(),
+                  'time': item.cache_time})
+
+   return rtn
+
 def is_queued(path):
    try:
       encode_queue = EncodeQueue.objects.get(hash = hash_path(path))
