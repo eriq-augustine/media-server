@@ -7,9 +7,11 @@ DJANGODIR=$PROJECT_ROOT/django_project  # Django project directory
 SOCKFILE=$PROJECT_ROOT/run/gunicorn.sock  # we will communicte using this unix socket
 USER=media  # the user to run as
 GROUP=media  # the group to run as
-NUM_WORKERS=8  # how many worker processes should Gunicorn spawn
+NUM_WORKERS=1  # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE=media_server.settings  # which settings file should Django use
 DJANGO_WSGI_MODULE=media_server.wsgi  # WSGI module name
+
+ENCODE_PID=$DJANGODIR/encode.pid
 
 ACCESS_LOG=$PROJECT_ROOT/logs/gunicorn-access.log
 ERROR_LOG=$PROJECT_ROOT/logs/gunicorn-error.log
@@ -26,6 +28,12 @@ export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 RUNDIR=$(dirname $SOCKFILE)
 test -d $RUNDIR || mkdir -p $RUNDIR
 
+# Remove the encode pid file (if it exists).
+test -f $ENCODE_PID && rm -f $ENCODE_PID
+
+# Start the encoder.
+python manage.py runscript manage_encode
+
 # Start your Django Unicorn
 # Programs meant to be run under supervisor should not daemonize themselves (do not use --daemon)
 exec $PROJECT_ROOT/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
@@ -36,3 +44,4 @@ exec $PROJECT_ROOT/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
   --access-logfile $ACCESS_LOG \
   --error-logfile $ERROR_LOG \
   --bind=unix:$SOCKFILE
+#  --worker-class gunicorn.workers.ggevent.GeventWorker \

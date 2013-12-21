@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mediaserver',
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -89,6 +90,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+TEMPLATE_DIRS = (
+    os.path.join(BASE_DIR, 'templates')
+)
+
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -115,9 +120,9 @@ STATICFILES_FINDERS = (
 # {git root}/server/media
 # Need to get the realpath to negotiate symlinks.
 #  Otherwise it will be difficult to tell if the request is outside of root.
-ROOT_DIR = os.path.realpath(os.path.join(os.path.join(BASE_DIR, '..'), 'media'))
+ROOT_DIR = os.path.realpath(os.path.join(BASE_DIR, '..', 'media'))
 
-CACHE_DIR = os.path.abspath(os.path.join(os.path.join(BASE_DIR, '..'), 'cache'))
+CACHE_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'cache'))
 
 TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')
 ENCODE_CACHE_DIR = os.path.join(CACHE_DIR, 'encode')
@@ -130,3 +135,5 @@ CACHE_SERVE_BASE = '/cache'
 
 FFMPEG_PATH = '/usr/bin/ffmpeg'
 ENCODING_THREADS = '{}'.format(multiprocessing.cpu_count())
+
+ENCODE_PID_FILE = os.path.join(BASE_DIR, 'encode.pid')

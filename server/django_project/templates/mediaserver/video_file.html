@@ -1,0 +1,15 @@
+{% extends "mediaserver/base_file.html" %}
+
+{% block file-content %}
+   <video controls class='video-player'>
+      {% if cache %}
+         <source src='{% url 'fetch_encode' path %}' type='{{ mime }}'>
+      {% else %}
+         <source src='{% url 'raw' path %}' type='{{ mime }}'>
+      {% endif %}
+      Browser not supported.
+   </video>
+   {% if encode %}
+      <p>(This file has been re-encoded as {{ encode }}.)</p>
+   {% endif %}
+{% endblock %}

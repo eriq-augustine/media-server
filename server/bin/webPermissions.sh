@@ -1,1 +1,1 @@
-chown -R eriq:media .
+sudo chown -R eriq:media .
