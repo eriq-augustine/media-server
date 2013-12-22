@@ -11,7 +11,7 @@ NUM_WORKERS=1  # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE=media_server.settings  # which settings file should Django use
 DJANGO_WSGI_MODULE=media_server.wsgi  # WSGI module name
 
-ENCODE_PID=$DJANGODIR/encode.pid
+ENCODE_PID=$DJANGODIR/encode.pid.lock
 
 ACCESS_LOG=$PROJECT_ROOT/logs/gunicorn-access.log
 ERROR_LOG=$PROJECT_ROOT/logs/gunicorn-error.log

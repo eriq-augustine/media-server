@@ -13,10 +13,6 @@ import time
 from multiprocessing import Process
 
 def run():
-   # Check if the pid file exists.
-   if os.path.exists(settings.ENCODE_PID_FILE):
-      return
-
    # daemonize
    context = daemon.DaemonContext(
       working_directory = settings.BASE_DIR,
