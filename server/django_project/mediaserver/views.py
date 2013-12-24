@@ -84,7 +84,6 @@ def view(request, urlpath):
       'parent': path.parent().urlpath(),
       'type': ext,
       'breadcrumbs': fileutils.build_breadcrumbs(path),
-      'encode_details': encode.get_display_details(),
    }
 
    if ext in EXTENSIONS:
@@ -152,7 +151,6 @@ def browse(request, urlpath = ''):
       'dirs': sorted(dirs, key = itemgetter('name')),
       'files': sorted(files, key = itemgetter('name')),
       'breadcrumbs': fileutils.build_breadcrumbs(path),
-      'encode_details': encode.get_display_details(),
    }
 
    return render(request, 'mediaserver/browse.html', context)

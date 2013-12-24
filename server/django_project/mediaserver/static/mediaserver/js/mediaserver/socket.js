@@ -4,8 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
    window.mediaserver.socket = new Socket();
 });
 
-// TODO(eriq): Get this from settings?
+// TODO(eriq): Get port from settings?
 Socket.SERVER = 'ws://' + document.domain + ':6060';
+Socket.VIEW_BASE = 'http://' + document.domain + ':5050/view'
 
 function Socket() {
    this.ws = new WebSocket(Socket.SERVER);
@@ -28,48 +29,93 @@ Socket.prototype.onMessage = function(messageEvent) {
       return false;
    }
 
-   /*
-   switch (message.Type) {
-      case Message.TYPE_START:
-         break;
-      case Message.TYPE_NEXT_TURN:
+   switch (message.type) {
+      case 'ENCODE_UPDATE':
+         this.update_encode_info(message['info']);
          break;
       default:
-         // Note: There are messages that are known, but just not expected from the server.
-         error('Unknown Message Type: ' + message.Type);
+         console.log('ERROR: Unknown Message Type: ' + message.type);
          break;
    }
-   */
 
    return true;
 };
 
 Socket.prototype.onClose = function(messageEvent) {
-   //TEST
    console.log("Connection to server closed.");
-
    return true;
 };
 
 Socket.prototype.onOpen = function(chosenPattern, messageEvent) {
    console.log("Connection to server opened.");
-   //TEST
-   // this.ws.send(createInitMessage(chosenPattern));
-
    return true;
 };
 
 Socket.prototype.onError = function(messageEvent) {
    console.log("WS Error: " + JSON.stringify(messageEvent));
-
    return true;
 };
 
-Socket.prototype.close = function() {
-   this.ws.close();
+Socket.prototype.update_encode_info = function(info) {
+   var html = [];
+   var i;
+  
+   if (info['encode_queue'].length == 0 && info['recent_cache'].length == 0) {
+      $('.right-pane').hide();
+      $('.page-content').removeClass('page-content-narrow');
+      return;
+   } else {
+      $('.right-pane').show();
+      $('.page-content').addClass('page-content-narrow');
+   }
 
-   return true;
+   if (info['encode_queue'].length > 0) {
+      html.push("<div class='encode-queue'>");
+      html.push("   <p>Encode Queue</p>");
+
+      for (var i in info['encode_queue']) {
+         var name = info['encode_queue'][i]['name'];
+         var time = info['encode_queue'][i]['time'];
+         var url = Socket.VIEW_BASE + '/' + info['encode_queue'][i]['path'];
+
+         html.push("   <div class='encode-item'>");
+         html.push("      <div class='encode-item-name'>");
+         html.push("         <a href='" + url + "'>" + name + "</a>");
+         html.push("      </div>");
+         html.push("      <div class='encode-item-time'>");
+         html.push("         " + time);
+         html.push("      </div>");
+         html.push("   </div>");
+      }
+
+      html.push("</div>");
+
+      if (info['recent_cache'].length > 0) {
+         html.push("   <hr />");
+      }
+   }
+
+   if (info['recent_cache'].length > 0) {
+      html.push("<div class='recent-cache'>");
+      html.push("   <p>Recently Encoded</p>");
+
+      for (var i in info['recent_cache']) {
+         var name = info['recent_cache'][i]['name'];
+         var time = info['recent_cache'][i]['time'];
+         var url = Socket.VIEW_BASE + '/' + info['recent_cache'][i]['path'];
+
+         html.push("   <div class='encode-item'>");
+         html.push("      <div class='encode-item-name'>");
+         html.push("         <a href='" + url + "'>" + name + "</a>");
+         html.push("      </div>");
+         html.push("      <div class='encode-item-time'>");
+         html.push("         " + time);
+         html.push("      </div>");
+         html.push("   </div>");
+      }
+
+      html.push("</div>");
+   }
+
+   $('.right-pane').html(html.join("\n"));
 };
-
-//TEST
-// this.ws.send(createMoveMessage(dropGemLocations, boardHash));
