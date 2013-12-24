@@ -4,8 +4,11 @@ monkey.patch_all()
 from mediaserver.fileutils import Path, UnsafePath
 from django.conf import settings
 
+import daemon
 import json
+import lockfile
 import random
+import signal
 import sys
 import threading
 
@@ -112,7 +115,7 @@ def update_cache_queue_info(conn, ws):
    # TODO(eriq): Only send if delta.
    send_cache_queue_info(last_info, ws)
 
-def run():
+def process_websocket():
    global sockets
    sockets = {}
 
@@ -147,3 +150,22 @@ def run():
 
    # Clean it up!
    conn.close()
+   
+def run():
+   # daemonize
+   context = daemon.DaemonContext(
+      working_directory = settings.BASE_DIR,
+      stdout = sys.stdout,
+      stderr = sys.stderr,
+      detach_process = True,
+      pidfile = lockfile.FileLock(settings.WEBSOCKET_PID_FILE),
+      signal_map = {
+         signal.SIGTTIN: None,
+         signal.SIGTTOU: None,
+         signal.SIGTSTP: None,
+         signal.SIGTERM: None,
+      },
+   )
+
+   with context:
+      process_websocket()
