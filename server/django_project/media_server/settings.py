@@ -137,3 +137,6 @@ FFMPEG_PATH = '/usr/bin/ffmpeg'
 ENCODING_THREADS = '{}'.format(multiprocessing.cpu_count())
 
 ENCODE_PID_FILE = os.path.join(BASE_DIR, 'encode.pid')
+
+WEBSOCKET_PORT = 6060
+WEBSOCKET_ADDRESS = "71.84.26.224:{}".format(WEBSOCKET_PORT)

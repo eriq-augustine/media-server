@@ -1,3 +1,4 @@
 gevent # for monkey thread patch.
 django-extensions # for runscript
 python-daemon # daemon encode
+gevent-websocket
