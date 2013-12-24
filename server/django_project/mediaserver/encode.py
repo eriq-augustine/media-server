@@ -6,7 +6,6 @@ from django.conf import settings
 
 import hashlib
 import os, os.path
-import subprocess
 import sys
 
 from multiprocessing import Process

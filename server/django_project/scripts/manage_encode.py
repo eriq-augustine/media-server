@@ -7,7 +7,9 @@ import daemon
 import lockfile
 import os, os.path
 import shutil
+import signal
 import subprocess
+import sys
 import time
 
 from multiprocessing import Process
@@ -16,8 +18,16 @@ def run():
    # daemonize
    context = daemon.DaemonContext(
       working_directory = settings.BASE_DIR,
+      stdout = sys.stdout,
+      stderr = sys.stderr,
       detach_process = True,
-      pidfile = lockfile.FileLock(settings.ENCODE_PID_FILE)
+      pidfile = lockfile.FileLock(settings.ENCODE_PID_FILE),
+      signal_map = {
+         signal.SIGTTIN: None,
+         signal.SIGTTOU: None,
+         signal.SIGTSTP: None,
+         signal.SIGTERM: None,
+      },
    )
 
    with context:
@@ -95,10 +105,14 @@ def encode_file(path, original_hash, target_path):
    args = [settings.FFMPEG_PATH]
    args += ['-threads', settings.ENCODING_THREADS]
    args += ['-i', path.syspath()]
+   args += ['-loglevel', 'warning']
    args += ['-ac', '1']
    args += ['-strict', '-2']
+   args += ['-nostats']
+   # TODO(eriq): ffmpeg lets you send progress to a url
+   # args += ['progress', '127.0.0.1:5050/encode-progress']
 
    # Always encode to mp4 since ffmpeg can multi-process well with mp4.
    args += [target_path.syspath()]
 
-   return subprocess.call(args)
+   return subprocess.call(args, stdout = sys.stdout, stderr = sys.stderr)
