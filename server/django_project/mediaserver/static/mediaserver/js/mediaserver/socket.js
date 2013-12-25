@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // TODO(eriq): Get port from settings?
 Socket.SERVER = 'ws://' + document.domain + ':6060';
-Socket.VIEW_BASE = 'http://' + document.domain + ':5050/view'
+// Socket.VIEW_BASE = 'http://' + document.domain + ':5050/view'
+Socket.VIEW_BASE = 'http://' + document.domain + '/view'
 
 function Socket() {
    this.ws = new WebSocket(Socket.SERVER);
