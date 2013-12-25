@@ -20,6 +20,10 @@ There are four main components to the media server.
 Before invoking 2 - 4, you should be sure to be in the virtualenv
 (source bin/active).
 
+All of these components are independent, and can act alone.
+
+See the systemd unit files (.service) in the conf dir for example units.
+
 Starting the media server manually:
    0. (I assume the server is configured properly)
    1. su media (or whatever user you wish to run under)

@@ -1,0 +1,16 @@
+[Unit]
+Description=mediaserver-encode
+
+[Service]
+ExecStart=/home/eriq/media-server/server/bin/start_encode.sh
+Type=forking
+PIDFile=/home/eriq/media-server/server/run/encode.pid
+User=media
+Group=media
+Restart=on-failure
+StandardOutput=journal
+StandardError=journal
+WorkingDirectory=/home/eriq/media-server/server
+
+[Install]
+WantedBy=multi-user.target

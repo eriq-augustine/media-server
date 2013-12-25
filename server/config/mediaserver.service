@@ -1,0 +1,18 @@
+[Unit]
+Description=mediaserver
+Wants=mediaserver-encode.service mediaserver-websocket.service
+After=mediaserver-encode.service mediaserver-websocket.service
+
+[Service]
+ExecStart=/home/eriq/media-server/server/bin/gunicorn_start.sh
+Type=forking
+PIDFile=/home/eriq/media-server/server/run/gunicorn.pid
+User=media
+Group=media
+Restart=on-failure
+StandardOutput=journal
+StandardError=journal
+WorkingDirectory=/home/eriq/media-server/server
+
+[Install]
+WantedBy=multi-user.target

@@ -1,3 +1,0 @@
-Files are served from a webserver that is not running django.
-I am using nginx rooted at the media root.
-Make sure to update 'FILE_SERVER' in media_server/settings.py
