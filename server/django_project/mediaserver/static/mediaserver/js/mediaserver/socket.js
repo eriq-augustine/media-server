@@ -18,9 +18,6 @@ function Socket() {
 }
 
 Socket.prototype.onMessage = function(messageEvent) {
-   //TEST
-   console.log(messageEvent.data);
-
    var message = null;
    try {
       message = JSON.parse(messageEvent.data);
@@ -78,10 +75,25 @@ Socket.prototype.update_encode_info = function(info) {
          var time = info['encode_queue'][i]['time'];
          var url = Socket.VIEW_BASE + '/' + info['encode_queue'][i]['path'];
 
+         var progress = "<p class='encode-progress'>Queued</p>";
+         if ('progress' in info['encode_queue'][i] &&
+             info['encode_queue'][i]['progress']['total'] > 0) {
+            progress = "<p class='encode-progress'>Encoding... <span class='red-text'>" +
+                        info['encode_queue'][i]['progress']['current'] +
+                        "</span><span>s / </span><span class='green-text'>" +
+                        info['encode_queue'][i]['progress']['total'] +
+                        "</span>s</p>";
+         }
+
          html.push("   <div class='encode-item'>");
          html.push("      <div class='encode-item-name'>");
          html.push("         <a href='" + url + "'>" + name + "</a>");
          html.push("      </div>");
+
+         if (progress) {
+            html.push("      " + progress);
+         }
+
          html.push("      <div class='encode-item-time'>");
          html.push("         " + time);
          html.push("      </div>");

@@ -7,7 +7,9 @@ from django.conf import settings
 import daemon
 import json
 import lockfile
+import os, os.path
 import random
+import re
 import signal
 import sys
 import threading
@@ -62,24 +64,23 @@ def get_sqlite_conn():
 
 def get_general_info(conn, table, time_field,
                      sort_order = '', second_sort = 'src',
-                     limit = 10):
+                     limit = 20):
    rtn = []
 
    try:
       cursor = conn.cursor()
-      cursor.execute('SELECT src, {} FROM {} ORDER BY {} {}, {} LIMIT {}'.format(time_field,
-                                                                                 table,
-                                                                                 time_field,
-                                                                                 sort_order,
-                                                                                 second_sort,
-                                                                                 limit))
+      query = "SELECT hash, src, strftime('%H:%M -- %Y-%m-%d', {}, 'localtime') FROM {} ORDER BY {} {}, {} LIMIT {}"
+      cursor.execute(query.format(time_field, table,
+                                  time_field, sort_order,
+                                  second_sort, limit))
 
       rows = cursor.fetchall()
       for row in rows:
-         path = Path.from_abs_syspath(row[0])
-         rtn.append({'name': path.display_name(),
+         path = Path.from_abs_syspath(row[1])
+         rtn.append({'hash': row[0],
+                     'name': path.display_name(),
                      'path': path.urlpath(),
-                     'time': row[1]})
+                     'time': row[2]})
    except Exception as ex:
       print 'Error fetching cache: {}'.format(ex)
       pass
@@ -92,9 +93,72 @@ def get_cache(conn):
 def get_queue(conn):
    return get_general_info(conn, 'mediaserver_encodequeue', 'queue_time')
 
+def extract_total_time(info_path):
+   info_file = open(info_path, 'r')
+   with info_file:
+      json_info = json.load(info_file)
+
+   return int(float(json_info['format']['duration']))
+
+# Just let it throw on io error.
+def extract_encode_time(progress_path):
+   progress_file = open(progress_path, 'r')
+   # Expecting 165ish characters every set.
+   # 2 == SEEK_END
+   progress_file.seek(-200, 2)
+
+   data = str(progress_file.read(200)).replace("\n", ' ')
+   match = re.search(r'out_time=(\d\d):(\d\d):(\d\d).(\d+)', data)
+
+   if match != None:
+      return int(match.group(1)) * 3600 + int(match.group(2)) * 60 + int(match.group(3))
+
+   return None
+
+# Look for .info and .progress files showing the status of an encode.
+def check_progress(info):
+   times = {}
+
+   progresses = {}
+   for dir_ent in os.listdir(settings.PROGRESS_CACHE_DIR):
+      dir_ent = os.path.abspath(os.path.join(settings.PROGRESS_CACHE_DIR, dir_ent))
+      ext = os.path.splitext(dir_ent)[1]
+      hash = os.path.splitext(os.path.basename(dir_ent))[0]
+
+      if ext == '.info':
+         if not hash in progresses:
+           progresses[hash] = {}
+         progresses[hash]['info'] = dir_ent
+      elif ext == '.progress':
+         if not hash in progresses:
+           progresses[hash] = {}
+         progresses[hash]['progress'] = dir_ent
+
+   for hash in progresses:
+      try:
+         if 'info' in progresses[hash] and 'progress' in progresses[hash]:
+            total_time = extract_total_time(progresses[hash]['info'])
+            current_encode_time = extract_encode_time(progresses[hash]['progress'])
+
+            if total_time != None and current_encode_time != None:
+               times[hash] = {'total': total_time,
+                              'current': current_encode_time}
+      except Exception as ex:
+        # File could have been removed by encoder.
+        pass
+
+   for queued in info['encode_queue']:
+      if queued['hash'] in times:
+         queued['progress'] = times[queued['hash']]
+
 def get_cache_queue_details(conn):
-      return {'encode_queue': get_queue(conn),
-              'recent_cache': get_cache(conn)}
+   info = {'encode_queue': get_queue(conn),
+           'recent_cache': get_cache(conn)}
+
+   if len(info['encode_queue']) > 0:
+      check_progress(info)
+
+   return info
 
 def send_cache_queue_info(info, ws):
     ws.send(json.dumps({'type': 'ENCODE_UPDATE',
@@ -150,7 +214,7 @@ def process_websocket():
 
    # Clean it up!
    conn.close()
-   
+
 def run():
    # daemonize
    context = daemon.DaemonContext(
