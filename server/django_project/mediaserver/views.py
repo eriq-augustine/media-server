@@ -12,11 +12,13 @@ from operator import itemgetter
 import os
 import sys
 
+# TODO(eriq): ?
 def index(request):
-   return HttpResponse("TODO(eriq): index.")
+   return HttpResponseRedirect(reverse('browse'))
 
+# TODO(eriq): Playlists and what-ot.
 def home(request):
-   return HttpResponse("TODO(eriq): home.")
+   return HttpResponseRedirect(reverse('browse'))
 
 # TODO(eriq): Error handle this.
 def fetch_encode(request, urlpath):
