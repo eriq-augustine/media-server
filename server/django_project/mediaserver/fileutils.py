@@ -132,6 +132,11 @@ def build_breadcrumbs(path):
    crumbs.reverse()
    return crumbs
 
+def write_pid(abspath):
+   pid_file = open(abspath, 'w')
+   with pid_file:
+      pid_file.write("{}".format(os.getpid()))
+
 EXTENSIONS = {
    # Default none to text.
    '': {'mime': 'text/plain', 'template': 'mediaserver/text_file.html'},

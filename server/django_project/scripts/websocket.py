@@ -1,7 +1,7 @@
 from gevent import monkey
 monkey.patch_all()
 
-from mediaserver.fileutils import Path, UnsafePath
+from mediaserver.fileutils import Path, write_pid
 from django.conf import settings
 
 import daemon
@@ -216,20 +216,20 @@ def process_websocket():
    conn.close()
 
 def run():
+   # See notes in manage_encode.py about the DaemonContext.
+
+   if os.path.exists(settings.WEBSOCKET_PID_FILE):
+      return
+
    # daemonize
    context = daemon.DaemonContext(
       working_directory = settings.BASE_DIR,
       stdout = sys.stdout,
       stderr = sys.stderr,
       detach_process = True,
-      pidfile = lockfile.FileLock(settings.WEBSOCKET_PID_FILE),
-      signal_map = {
-         signal.SIGTTIN: None,
-         signal.SIGTTOU: None,
-         signal.SIGTSTP: None,
-         signal.SIGTERM: None,
-      },
+      pidfile = open(settings.WEBSOCKET_PID_FILE, 'w'),
    )
 
    with context:
+      write_pid(settings.WEBSOCKET_PID_FILE)
       process_websocket()

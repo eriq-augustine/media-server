@@ -10,7 +10,6 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 import multiprocessing
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -121,16 +120,14 @@ STATICFILES_FINDERS = (
 # {git root}/server/media
 # Need to get the realpath to negotiate symlinks.
 #  Otherwise it will be difficult to tell if the request is outside of root.
-ROOT_DIR = os.path.realpath(os.path.join(BASE_DIR, '..', 'media'))
+ROOT_DIR = os.path.realpath(os.path.join(BASE_DIR, os.pardir, 'media'))
 
-CACHE_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'cache'))
+CACHE_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir, 'cache'))
 
 TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')
 ENCODE_CACHE_DIR = os.path.join(CACHE_DIR, 'encode')
 PROGRESS_CACHE_DIR = os.path.join(CACHE_DIR, 'progress')
 
-#FILE_SERVER = '192.168.1.169:3030'
-#CACHE_SERVER = '192.168.1.169:4040'
 # These are the path to alternate locations served through the webserver.
 MEDIA_SERVE_BASE = '/media'
 CACHE_SERVE_BASE = '/cache'
@@ -138,8 +135,8 @@ CACHE_SERVE_BASE = '/cache'
 FFMPEG_PATH = '/usr/bin/ffmpeg'
 FFPROBE_PATH = '/usr/bin/ffprobe'
 ENCODING_THREADS = '{}'.format(multiprocessing.cpu_count())
-ENCODE_PID_FILE = os.path.join(BASE_DIR, 'encode.pid')
+ENCODE_PID_FILE = os.path.join(BASE_DIR, os.pardir, 'run', 'encode.pid')
 
 WEBSOCKET_PORT = 6060
 WEBSOCKET_ADDRESS = "71.84.26.224:{}".format(WEBSOCKET_PORT)
-WEBSOCKET_PID_FILE = os.path.join(BASE_DIR, 'websocket.pid')
+WEBSOCKET_PID_FILE = os.path.join(BASE_DIR, os.pardir, 'run', 'websocket.pid')

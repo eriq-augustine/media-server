@@ -1,6 +1,6 @@
 from mediaserver.models import EncodeQueue, Cache
 from mediaserver.encode import hash_path
-from mediaserver.fileutils import Path, UnsafePath
+from mediaserver.fileutils import UnsafePath, write_pid
 from django.conf import settings
 
 import daemon
@@ -15,22 +15,27 @@ import time
 from multiprocessing import Process
 
 def run():
+   # The pidfile option of the DaemonContext does not seem as useful as first glance.
+   #  It does not put the pid in the file.
+   #  It does not exit if the file exists.
+   # So, manage by hand.
+   if os.path.exists(settings.ENCODE_PID_FILE):
+      return
+
    # daemonize
    context = daemon.DaemonContext(
       working_directory = settings.BASE_DIR,
       stdout = sys.stdout,
       stderr = sys.stderr,
       detach_process = True,
-      pidfile = lockfile.FileLock(settings.ENCODE_PID_FILE),
-      signal_map = {
-         signal.SIGTTIN: None,
-         signal.SIGTTOU: None,
-         signal.SIGTSTP: None,
-         signal.SIGTERM: None,
-      },
+      # Locking does not really seem to help.
+      # Also, we want systemd to have access to the pid file.
+      # pidfile = lockfile.FileLock(settings.ENCODE_PID_FILE),
+      pidfile = open(settings.ENCODE_PID_FILE, 'w'),
    )
 
    with context:
+      write_pid(settings.ENCODE_PID_FILE)
       process_queue()
 
 def process_queue():
