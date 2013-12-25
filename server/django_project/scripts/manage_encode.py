@@ -99,9 +99,25 @@ def get_temp_cache_path(path, original_hash):
 def copy_to_cache(path, temp_path):
    shutil.copyfile(path.syspath(), temp_path.syspath())
 
+def create_info_file(path, info_file):
+    args = [settings.FFPROBE_PATH]
+    args += ['-v', 'quiet']
+    args += ['-print_format', 'json']
+    args += ['-show_format']
+    args += ['-i', path.syspath()]
+
+    out_file = open(info_file, 'w')
+    with out_file:
+        subprocess.call(args, stdout = out_file, stderr = sys.stderr)
+
 # Need to keep the original hash, because |path| points to the temp cache
 #  not the source file.
 def encode_file(path, original_hash, target_path):
+   progress_file = os.path.join(settings.PROGRESS_CACHE_DIR, "{}.progress".format(original_hash))
+   info_file = os.path.join(settings.PROGRESS_CACHE_DIR, "{}.info".format(original_hash))
+
+   create_info_file(path, info_file)
+
    args = [settings.FFMPEG_PATH]
    args += ['-threads', settings.ENCODING_THREADS]
    args += ['-i', path.syspath()]
@@ -109,10 +125,14 @@ def encode_file(path, original_hash, target_path):
    args += ['-ac', '1']
    args += ['-strict', '-2']
    args += ['-nostats']
-   # TODO(eriq): ffmpeg lets you send progress to a url
-   # args += ['progress', '127.0.0.1:5050/encode-progress']
+   # Send out the progress.
+   args += ['-progress', progress_file]
 
    # Always encode to mp4 since ffmpeg can multi-process well with mp4.
    args += [target_path.syspath()]
 
-   return subprocess.call(args, stdout = sys.stdout, stderr = sys.stderr)
+   subprocess.call(args, stdout = sys.stdout, stderr = sys.stderr)
+
+    # Remove the info and progress files.
+   os.remove(progress_file)
+   os.remove(info_file)

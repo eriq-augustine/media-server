@@ -11,6 +11,9 @@ ENCODE_ERROR_BASE=$PROJECT_ROOT/logs/encode
 cd $PROJECT_ROOT
 ./bin/removePartialEncodes.sh
 
+# Remove any info/progress files
+rm -f $PROJECT_ROOT/cache/progress/*
+
 # Activate the virtual environment
 cd $DJANGODIR
 source $PROJECT_ROOT/bin/activate

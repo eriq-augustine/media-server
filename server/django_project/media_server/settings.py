@@ -127,6 +127,7 @@ CACHE_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'cache'))
 
 TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')
 ENCODE_CACHE_DIR = os.path.join(CACHE_DIR, 'encode')
+PROGRESS_CACHE_DIR = os.path.join(CACHE_DIR, 'progress')
 
 #FILE_SERVER = '192.168.1.169:3030'
 #CACHE_SERVER = '192.168.1.169:4040'
@@ -135,6 +136,7 @@ MEDIA_SERVE_BASE = '/media'
 CACHE_SERVE_BASE = '/cache'
 
 FFMPEG_PATH = '/usr/bin/ffmpeg'
+FFPROBE_PATH = '/usr/bin/ffprobe'
 ENCODING_THREADS = '{}'.format(multiprocessing.cpu_count())
 ENCODE_PID_FILE = os.path.join(BASE_DIR, 'encode.pid')
 
