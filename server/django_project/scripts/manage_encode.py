@@ -28,9 +28,8 @@ def run():
       stdout = sys.stdout,
       stderr = sys.stderr,
       detach_process = True,
-      # Locking does not really seem to help.
+      # Locking (locking) does not really seem to help.
       # Also, we want systemd to have access to the pid file.
-      # pidfile = lockfile.FileLock(settings.ENCODE_PID_FILE),
       pidfile = open(settings.ENCODE_PID_FILE, 'w'),
    )
 
@@ -58,11 +57,15 @@ def next_encode():
    new_path = maybe_encode(src_path)
    encode_task.delete()
 
-   # HACK(eriq): The cache urlpath is pretty janky.
    hash = hash_path(src_path)
+
+   encode_path = get_encode_cache_path(src_path, hash)
+
+   # HACK(eriq): The cache urlpath is pretty janky.
    new_cache_item = Cache(src = encode_task.src,
                           hash = hash,
-                          urlpath = hash + '.mp4')
+                          urlpath = hash + '.mp4',
+                          bytes = os.path.getsize(encode_path.syspath()))
    new_cache_item.save()
 
 # Maybe encode the file and return the path to the converted file.

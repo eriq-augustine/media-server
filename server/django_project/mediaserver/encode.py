@@ -51,7 +51,10 @@ def is_cached(path):
 
 def get_cache(path):
    try:
-      return Cache.objects.get(hash = hash_path(path))
+      cache_obj = Cache.objects.get(hash = hash_path(path))
+      cache_obj.hit_count += 1
+      cache_obj.save()
+      return cache_obj
    except Cache.DoesNotExist:
       return None
 

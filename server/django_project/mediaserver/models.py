@@ -17,3 +17,6 @@ class Cache(models.Model):
     src = models.CharField(max_length = 2048)
     hash = models.CharField(max_length = 32)
     urlpath = models.CharField(max_length = 2048)
+    hit_count = models.IntegerField(default = 1)
+    last_access = models.DateTimeField(auto_now = True)
+    bytes = models.IntegerField()
