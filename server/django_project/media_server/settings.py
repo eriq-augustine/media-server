@@ -128,6 +128,11 @@ TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')
 ENCODE_CACHE_DIR = os.path.join(CACHE_DIR, 'encode')
 PROGRESS_CACHE_DIR = os.path.join(CACHE_DIR, 'progress')
 
+# When cache is larger than this, remove items.
+MAX_CACHE_SIZE_GB = 50
+# While cache is above this, remove items.
+CACHE_LOWER_SIZE_GB = 45
+
 # These are the path to alternate locations served through the webserver.
 MEDIA_SERVE_BASE = '/media'
 CACHE_SERVE_BASE = '/cache'

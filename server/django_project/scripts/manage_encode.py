@@ -1,8 +1,10 @@
+from django.conf import settings
+from django.db.models import Sum
 from mediaserver.models import EncodeQueue, Cache
 from mediaserver.encode import hash_path
 from mediaserver.fileutils import UnsafePath, write_pid
-from django.conf import settings
 
+from datetime import datetime
 import daemon
 import lockfile
 import os, os.path
@@ -41,6 +43,7 @@ def process_queue():
    # HACK(eriq): Just testing, select later.
    while (True):
       while (has_next_encode()):
+         manage_cache_size()
          next_encode()
       time.sleep(5)
 
@@ -144,3 +147,36 @@ def encode_file(path, original_hash, target_path):
     # Remove the info and progress files.
    os.remove(progress_file)
    os.remove(info_file)
+
+def manage_cache_size():
+   size_bytes = Cache.objects.aggregate(Sum('bytes'))['bytes__sum']
+   max_size_bytes = settings.MAX_CACHE_SIZE_GB * 1024 * 1024 * 1024
+
+   if size_bytes < max_size_bytes:
+      return
+
+   lower_size_bytes = settings.CACHE_LOWER_SIZE_GB * 1024 * 1024 * 1024
+
+   cache_objs = Cache.objects.all()
+   # [(score, obj), ...]
+   cache_scores = [(score_cache_obj(cache_obj), cache_obj) for cache_obj in cache_objs]
+
+   for cache_score, cache_obj in sorted(cache_scores, key = lambda val: val[0], reverse = True):
+      if size_bytes < lower_size_bytes:
+         break
+
+      size_bytes -= cache_obj.bytes
+      remove_from_cache(cache_obj)
+
+# Determine the score for an item in the cache.
+# The higher the score, the more likely an item will be removed.
+def score_cache_obj(cache_obj):
+   last_access = cache_obj.last_access
+   now = datetime.utcnow().replace(tzinfo = last_access.tzinfo)
+   day_diff = (now - last_access).days
+
+   return ((day_diff + 1) * cache_obj.bytes) / ((cache_obj.hit_count + 1) / 2.0)
+
+def remove_from_cache(cache_obj):
+   os.remove(os.path.join(settings.ENCODE_CACHE_DIR, cache_obj.urlpath))
+   cache_obj.delete()
