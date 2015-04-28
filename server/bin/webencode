@@ -1,0 +1,155 @@
+#!/bin/ruby
+
+FFPROBE_PATH = '/usr/bin/ffprobe'
+FFMPEG_PATH = '/usr/bin/ffmpeg'
+
+POSTER_TIME = 5
+
+STATE_OPEN = 0
+STATE_METADATA = 1
+STATE_STREAM = 2
+
+if (ARGV.size() < 1 || ARGV.size() > 4)
+   puts "USAGE: ruby #{__FILE__} <file> [output basename] [encoding threads] [progress file]"
+   exit
+end
+
+filename = ARGV.shift()
+baseFilename = File.basename(filename, '.*')
+baseDir = File.dirname(filename)
+
+outBasename = nil
+if (!ARGV.empty?)
+   outBasename = ARGV.shift()
+end
+
+threads = nil
+if (!ARGV.empty?)
+   threads = ARGV.shift()
+end
+
+progressFile = nil
+if (!ARGV.empty?)
+   progressFile = ARGV.shift()
+end
+
+metadata = {}
+streams = {
+   :video => [],
+   :audio => [],
+   :subtitle => [],
+   :other => []
+}
+
+rawInfo = `#{FFPROBE_PATH} -hide_banner -show_streams -show_format '#{filename}' 2> /dev/null`
+
+state = STATE_OPEN
+currentStream = nil
+
+rawInfo.each_line{|line|
+   line.strip!()
+
+   case state
+   when STATE_OPEN
+      if (line == '[FORMAT]')
+         state = STATE_METADATA
+      elsif (line == '[STREAM]')
+         state = STATE_STREAM
+         currentStream = {}
+      end
+   when STATE_METADATA
+      if (line == '[/FORMAT]')
+         state = STATE_OPEN
+      else
+         data = line.downcase().sub(/^tag:/, '').split('=', 2)
+         metadata[data[0].strip()] = data[1].strip()
+      end
+   when STATE_STREAM
+      if (line == '[/STREAM]')
+         case currentStream['codec_type']
+         when 'video'
+            streams[:video] << currentStream
+         when 'audio'
+            streams[:audio] << currentStream
+         when 'subtitle'
+            # Ensure that 'lang' is populated if 'language' exists.
+            if (currentStream.has_key?('language') && !currentStream.has_key?('lang'))
+               currentStream['lang'] = currentStream['language']
+            end
+
+            streams[:subtitle] << currentStream
+         when 'attachment'
+            streams[:other] << currentStream
+         else
+            puts "Unknown codec_type: #{currentStream['codec_type']}."
+            streams[:other] << currentStream
+         end
+
+         currentStream = nil
+         state = STATE_OPEN
+      else
+         data = line.downcase().sub(/^tag:/, '').split('=', 2)
+         currentStream[data[0]] = data[1]
+      end
+   else
+      puts "Unknown case: #{state}."
+      exit
+   end
+}
+
+# Right now there is poor support for multiple audio/video streams.
+# So, just pick the "best" ones.
+videoStream = nil
+audioStream = nil
+
+# For video streams, pick the first one.
+videoStream = streams[:video][0]
+
+# For audio streams, first remove any commentary streams, then favor japanese.
+nonCommentary = streams[:audio].select{|stream|
+   stream.fetch('title', '').match(/commentary/i) == nil
+}
+
+sortAudio = nonCommentary.sort{|a, b|
+   if (['japanese', 'jpn', 'jp'].include?(a.fetch('lang', '')))
+      next -1
+   elsif (['japanese', 'jpn', 'jp'].include?(b.fetch('lang', '')))
+      next 1
+   end
+
+   next a['index'] <=> b['index']
+}
+
+audioStream = sortAudio[0]
+
+# Encode with the two streams and all the subtitiles.
+# Also pull all the subtitles out into their own files.
+videoEncode = "-c:v libx264 -crf 10 -b:v #{metadata['bit_rate']} -map 0:#{videoStream['index']}"
+audioEncode = "-strict -2 -c:a aac -map 0:#{audioStream['index']}"
+
+subtitleEncode = ""
+subtitleCommand = ""
+
+streams[:subtitle].each{|stream|
+   subtitleEncode += " -c:s mov_text -map 0:#{stream['index']}"
+   subtitleCommand += " -c:s webvtt -map 0:#{stream['index']} '#{baseDir}/#{outBasename}_#{stream.fetch('lang', 'und')}_#{stream['index'].rjust(2, '0')}.vtt'"
+}
+
+staticArgs = "-i '#{filename}' -y -nostats -loglevel warning"
+
+if (threads != nil)
+   staticArgs += " -threads #{threads}"
+end
+
+if (progressFile != nil)
+   staticArgs += " -progress #{progressFile}"
+end
+
+command = "#{FFMPEG_PATH} #{staticArgs} #{videoEncode} #{audioEncode} #{subtitleEncode} '#{baseDir}/#{outBasename}.mp4' #{subtitleCommand}"
+puts command
+`#{command}`
+
+# Pull out a poster.
+command = "#{FFMPEG_PATH} -i '#{filename}' -y -loglevel warning -nostats -ss #{POSTER_TIME} -vframes 1 '#{baseDir}/#{outBasename}_poster.png'"
+puts command
+`#{command}`

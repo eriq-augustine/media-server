@@ -122,6 +122,8 @@ STATICFILES_FINDERS = (
 #  Otherwise it will be difficult to tell if the request is outside of root.
 ROOT_DIR = os.path.realpath(os.path.join(BASE_DIR, os.pardir, 'media'))
 
+BIN_DIR = os.path.realpath(os.path.join(BASE_DIR, os.pardir, 'bin'))
+
 CACHE_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir, 'cache'))
 
 TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')
@@ -129,9 +131,9 @@ ENCODE_CACHE_DIR = os.path.join(CACHE_DIR, 'encode')
 PROGRESS_CACHE_DIR = os.path.join(CACHE_DIR, 'progress')
 
 # When cache is larger than this, remove items.
-MAX_CACHE_SIZE_GB = 50
+MAX_CACHE_SIZE_GB = 40
 # While cache is above this, remove items.
-CACHE_LOWER_SIZE_GB = 45
+CACHE_LOWER_SIZE_GB = 30
 
 # These are the path to alternate locations served through the webserver.
 MEDIA_SERVE_BASE = '/media'
@@ -139,9 +141,29 @@ CACHE_SERVE_BASE = '/cache'
 
 FFMPEG_PATH = '/usr/bin/ffmpeg'
 FFPROBE_PATH = '/usr/bin/ffprobe'
+WEBENCODE_PATH = os.path.join(BIN_DIR, 'webencode')
 ENCODING_THREADS = '{}'.format(multiprocessing.cpu_count())
 ENCODE_PID_FILE = os.path.join(BASE_DIR, os.pardir, 'run', 'encode.pid')
 
 WEBSOCKET_PORT = 6060
 WEBSOCKET_ADDRESS = "71.84.26.224:{}".format(WEBSOCKET_PORT)
 WEBSOCKET_PID_FILE = os.path.join(BASE_DIR, os.pardir, 'run', 'websocket.pid')
+
+# TODO(eriq): Get a full list of codes.
+LANGUAGE_CODES = {
+   'eng': 'English',
+   'en': 'English',
+   'english': 'English',
+   'jp': 'Japanese',
+   'jpn': 'Japanese',
+   'fr': 'French',
+   'es': 'Spanish',
+   'spa': 'Spanish'
+}
+
+REVERSE_LANGUAGE_CODES = {
+   'English': 'en',
+   'Japanese': 'jp',
+   'French': 'fr',
+   'Spanish': 'es'
+}

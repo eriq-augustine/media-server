@@ -12,6 +12,7 @@ There are four main components to the media server.
       handles encodes. We have had many problems with gunicorn
       killing off our encode thread, so it is now standalone.
       bin/start_encode.sh runs the encode process.
+      The encoding script require ruby, ffmpeg, and ffprobe.
    4. The websocket server. (requires a different port).
       This establishes a connection to active clients and
       sends updates about the encode and cache.

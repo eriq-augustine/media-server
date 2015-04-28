@@ -6,8 +6,12 @@ from mediaserver.fileutils import UnsafePath, write_pid
 
 from datetime import datetime
 import daemon
+import glob
+import io
+import json
 import lockfile
 import os, os.path
+import re
 import shutil
 import signal
 import subprocess
@@ -67,7 +71,7 @@ def next_encode():
    # HACK(eriq): The cache urlpath is pretty janky.
    new_cache_item = Cache(src = encode_task.src,
                           hash = hash,
-                          urlpath = hash + '.mp4',
+                          urlpath = hash + '/' + hash + '.mp4',
                           bytes = os.path.getsize(encode_path.syspath()))
    new_cache_item.save()
 
@@ -85,30 +89,80 @@ def maybe_encode(path):
    return encode_path
 
 def encode(path, original_hash, temp_path, target_path):
+   cache_dir = target_path.parent()
+
+   # Make a directory for the encode.
+   os.mkdir(cache_dir.syspath())
+
    # Copy the file from its source into the cache.
    copy_to_cache(path, temp_path)
 
    # Encode the file from the cache.
-   encode_file(temp_path, original_hash, target_path)
+   encode_file(temp_path, original_hash, target_path, cache_dir)
+
+   # TODO(eriq): Look for other subtitiles
+   create_display_info_file(path, original_hash, cache_dir)
 
    # rm the temp file.
    os.remove(temp_path.syspath())
 
 def get_encode_cache_path(path, original_hash):
-   syspath = os.path.join(settings.ENCODE_CACHE_DIR, original_hash + '.mp4')
+    # <cache dir>/<hash>/<hash>.mp4
+   syspath = os.path.join(settings.ENCODE_CACHE_DIR, original_hash, original_hash + '.mp4')
    new_path = UnsafePath.from_abs_syspath(syspath)
    return new_path
 
 def get_temp_cache_path(path, original_hash):
    # The copy does not yet exist and will probably be outside the root,
    #  need an unsafe path.
-   syspath = os.path.join(settings.TEMP_CACHE_DIR, original_hash + '.' + path.ext())
+   syspath = os.path.join(settings.ENCODE_CACHE_DIR, original_hash, original_hash + '.' + path.ext())
    new_path = UnsafePath.from_abs_syspath(syspath)
    return new_path
 
 # Return the new path.
 def copy_to_cache(path, temp_path):
    shutil.copyfile(path.syspath(), temp_path.syspath())
+
+def create_display_info_file(orig_path, original_hash, cache_dir_path):
+   info_path = cache_dir_path.join(original_hash + '_display_info.json')
+   info = {}
+
+   info['name'] = orig_path.display_name()
+   info['subtitles'] = []
+
+   # Check for posters
+   poster_path = cache_dir_path.join(original_hash + '_poster.png')
+   if os.path.exists(poster_path.syspath()):
+      info['poster'] = poster_path.display_name()
+
+   # Check for subtitles
+   subtitle_regex = original_hash + r'_([a-zA-Z]+)_(\d+)\.vtt'
+   for subtitle_file in glob.glob(cache_dir_path.join(original_hash + '_*.vtt').syspath()):
+      basename = os.path.basename(subtitle_file)
+      match = re.search(subtitle_regex, basename)
+
+      lang = match.group(1).lower()
+      if lang in settings.LANGUAGE_CODES:
+         lang = settings.LANGUAGE_CODES[lang]
+
+      short_lang = lang
+      if short_lang in settings.REVERSE_LANGUAGE_CODES:
+         short_lang = settings.REVERSE_LANGUAGE_CODES[short_lang]
+
+      display = lang + ' ' + match.group(2)
+
+      info['subtitles'].append({
+         'file': basename,
+         'display': display,
+         'lang': short_lang,
+         'display_lang': lang
+      })
+
+   with io.open(info_path.syspath(), 'w', encoding = 'utf-8') as json_file:
+      json_file.write(unicode(json.dumps(info, ensure_ascii = False)))
+
+   return info_path
+
 
 def create_info_file(path, info_file):
     args = [settings.FFPROBE_PATH]
@@ -123,24 +177,19 @@ def create_info_file(path, info_file):
 
 # Need to keep the original hash, because |path| points to the temp cache
 #  not the source file.
-def encode_file(path, original_hash, target_path):
+def encode_file(path, original_hash, target_path, cache_dir):
+   # These files are for the monitoring the status of encodes.
    progress_file = os.path.join(settings.PROGRESS_CACHE_DIR, "{}.progress".format(original_hash))
    info_file = os.path.join(settings.PROGRESS_CACHE_DIR, "{}.info".format(original_hash))
 
    create_info_file(path, info_file)
 
-   args = [settings.FFMPEG_PATH]
-   args += ['-threads', settings.ENCODING_THREADS]
-   args += ['-i', path.syspath()]
-   args += ['-loglevel', 'warning']
-   args += ['-ac', '1']
-   args += ['-strict', '-2']
-   args += ['-nostats']
+   args = [settings.WEBENCODE_PATH]
+   args += [path.syspath()]
+   args += [original_hash]
+   args += [settings.ENCODING_THREADS]
    # Send out the progress.
-   args += ['-progress', progress_file]
-
-   # Always encode to mp4 since ffmpeg can multi-process well with mp4.
-   args += [target_path.syspath()]
+   args += [progress_file]
 
    subprocess.call(args, stdout = sys.stdout, stderr = sys.stderr)
 

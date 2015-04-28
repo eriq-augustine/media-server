@@ -147,6 +147,13 @@ iframe {
    min-height: 1000px;
 }
 
+.video-js .vjs-tech {
+   height: auto !important;
+   position: relative !important;
+}
+
+/*
 .video-player {
    max-width: 100%;
 }
+*/

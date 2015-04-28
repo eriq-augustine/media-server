@@ -9,6 +9,8 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, StreamingHt
 from django.shortcuts import render, redirect
 
 from operator import itemgetter
+import io
+import json
 import os
 import sys
 
@@ -98,6 +100,7 @@ def view(request, urlpath):
             context['path'] = cache.urlpath
             context['cache'] = True
             context['encode'] = EXTENSIONS[ext]['encode']
+            context['display_info'] = get_display_info(cache)
             return render(request, EXTENSIONS[ext]['encode_template'], context)
          elif not encode.is_queued(path):
             encode.queue(path)
@@ -109,6 +112,26 @@ def view(request, urlpath):
          return render(request, EXTENSIONS[ext]['template'], context)
 
    return render(request, 'mediaserver/unsupported_file.html', context)
+
+def get_display_info(cache):
+   try:
+      # This may extend out of root.
+      display_info = None
+      cache_dir = UnsafePath.from_abs_syspath(os.path.join(settings.ENCODE_CACHE_DIR, cache.hash))
+      with io.open(cache_dir.join(cache.hash + '_display_info.json').syspath(), 'r', encoding = 'utf-8') as json_file:
+         display_info = json.load(json_file)
+
+      # Re-write paths in display_info to be relative to the cache dir.
+      if ('poster' in display_info):
+         display_info['poster_url'] = '/cache/' + cache.hash + '/' + display_info['poster']
+
+      for subtitle in display_info['subtitles']:
+         subtitle['file_url'] = '/cache/' + cache.hash + '/' + subtitle['file']
+
+      return display_info
+
+   except Exception:
+      return None
 
 # TODO(eriq): Need to convert paths back to url paths before render.
 #  Windows will have a problem.
