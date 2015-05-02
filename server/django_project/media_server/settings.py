@@ -126,8 +126,6 @@ BIN_DIR = os.path.realpath(os.path.join(BASE_DIR, os.pardir, 'bin'))
 
 CACHE_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir, 'cache'))
 
-TEMP_CACHE_DIR = os.path.join(CACHE_DIR, 'temp')
-ENCODE_CACHE_DIR = os.path.join(CACHE_DIR, 'encode')
 PROGRESS_CACHE_DIR = os.path.join(CACHE_DIR, 'progress')
 
 # When cache is larger than this, remove items.
@@ -141,7 +139,12 @@ CACHE_SERVE_BASE = '/cache'
 
 FFMPEG_PATH = '/usr/bin/ffmpeg'
 FFPROBE_PATH = '/usr/bin/ffprobe'
-WEBENCODE_PATH = os.path.join(BIN_DIR, 'webencode')
+
+ENCODE_UTILS_PATH = os.path.join(BIN_DIR, 'encode')
+EXTRACT_POSTER_PATH = os.path.join(ENCODE_UTILS_PATH, 'extract_poster')
+EXTRACT_SUBTITLES_PATH = os.path.join(ENCODE_UTILS_PATH, 'extract_subtitles')
+WEBENCODE_PATH = os.path.join(ENCODE_UTILS_PATH, 'webencode')
+
 ENCODING_THREADS = '{}'.format(multiprocessing.cpu_count())
 ENCODE_PID_FILE = os.path.join(BASE_DIR, os.pardir, 'run', 'encode.pid')
 

@@ -1,4 +1,6 @@
 from fileutils import EXTENSIONS, Path, UnsafePath, OutOfRootException, PathDoesntExistsException
+
+import cache
 import fileutils
 import encode
 
@@ -22,8 +24,7 @@ def index(request):
 def home(request):
    return HttpResponseRedirect(reverse('browse'))
 
-# TODO(eriq): Error handle this.
-def fetch_encode(request, urlpath):
+def fetch_cache(request, urlpath):
    # HACK(eriq): Don't use unsafe path.
    #  It is safe, just not rooted in the media dir.
 
@@ -90,48 +91,27 @@ def view(request, urlpath):
       'breadcrumbs': fileutils.build_breadcrumbs(path),
    }
 
-   if ext in EXTENSIONS:
-      # Check if this format needs an encode.
-      if 'encode' in EXTENSIONS[ext]:
-         # Check if the file is cached.
-         cache = encode.get_cache(path)
-         if cache:
-            context['mime'] = EXTENSIONS[ext]['mime']
-            context['path'] = cache.urlpath
-            context['cache'] = True
-            context['encode'] = EXTENSIONS[ext]['encode']
-            context['display_info'] = get_display_info(cache)
-            return render(request, EXTENSIONS[ext]['encode_template'], context)
-         elif not encode.is_queued(path):
-            encode.queue(path)
-            return render(request, EXTENSIONS[ext]['template'], context)
-         else:
-            return render(request, EXTENSIONS[ext]['template'], context)
-      else:
-         context['mime'] = EXTENSIONS[ext]['mime']
+   if ext not in EXTENSIONS:
+      return render(request, 'mediaserver/unsupported_file.html', context)
+
+   # Check if this format needs a cache.
+   if 'cache' in EXTENSIONS[ext]:
+      # Check if the cache is ready.
+      cache_status, cache_data = cache.fetch_cache_data(path)
+
+      if cache_status == cache.CACHE_STATUS_READY:
+         cache.prep_context(path, context, cache_data)
          return render(request, EXTENSIONS[ext]['template'], context)
-
-   return render(request, 'mediaserver/unsupported_file.html', context)
-
-def get_display_info(cache):
-   try:
-      # This may extend out of root.
-      display_info = None
-      cache_dir = UnsafePath.from_abs_syspath(os.path.join(settings.ENCODE_CACHE_DIR, cache.hash))
-      with io.open(cache_dir.join(cache.hash + '_display_info.json').syspath(), 'r', encoding = 'utf-8') as json_file:
-         display_info = json.load(json_file)
-
-      # Re-write paths in display_info to be relative to the cache dir.
-      if ('poster' in display_info):
-         display_info['poster_url'] = '/cache/' + cache.hash + '/' + display_info['poster']
-
-      for subtitle in display_info['subtitles']:
-         subtitle['file_url'] = '/cache/' + cache.hash + '/' + subtitle['file']
-
-      return display_info
-
-   except Exception:
-      return None
+      elif cache_status == cache.CACHE_STATUS_ENCODING:
+         return render(request, EXTENSIONS[ext]['cache']['place_holder_template'], context)
+      elif cache_status == cache.CACHE_STATUS_ERROR:
+         # TODO(eriq): Error template?
+         raise Exception('Cache Error')
+      else:
+         raise Exception('Unknown cache status: ' + cache_status)
+   else:
+      context['mime'] = EXTENSIONS[ext]['mime']
+      return render(request, EXTENSIONS[ext]['template'], context)
 
 # TODO(eriq): Need to convert paths back to url paths before render.
 #  Windows will have a problem.

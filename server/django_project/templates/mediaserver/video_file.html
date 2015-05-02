@@ -14,13 +14,17 @@
       class='video-player video-js vjs-default-skin vjs-big-play-centered'
       width='auto'
       height='auto'
-      data-setup='{ "controls": true, "poster": "{{ display_info.poster_url }}" }'
+      data-setup='{ "controls": true, "poster": "{{ cache.poster }}" }'
    >
       {% if cache %}
-         <source src='{% url 'fetch_encode' path %}' type='{{ mime }}'>
+         {% if cache.encoded_video %}
+            <source src='{{ path }}' type='{{ mime }}'>
+         {% else %}
+            <source src='{% url 'raw' path %}' type='{{ mime }}'>
+         {% endif %}
 
-         {% for subtitle in display_info.subtitles %}
-            <track kind="subtitles" src="{{ subtitle.file_url }}" srclang="{{ subtitle.lang }}" label="{{ subtitle.display }}"></track>
+         {% for subtitle in cache.subtitles %}
+            <track kind="subtitles" src="{{ subtitle.url }}" srclang="{{ subtitle.lang }}" label="{{ subtitle.display }}"></track>
          {% endfor %}
       {% else %}
          <source src='{% url 'raw' path %}' type='{{ mime }}'>

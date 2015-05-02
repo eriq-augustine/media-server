@@ -63,6 +63,10 @@ def hash_path(path):
    md5.update(path.syspath())
    return md5.hexdigest()
 
+def try_queue(path):
+   if not is_queued(path):
+      queue(path)
+
 def queue(path):
    queue_item = EncodeQueue(src = path.syspath(), hash = hash_path(path))
    queue_item.save()

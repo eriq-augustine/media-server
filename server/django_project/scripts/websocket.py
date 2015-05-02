@@ -1,7 +1,7 @@
 from gevent import monkey
 monkey.patch_all()
 
-from mediaserver.fileutils import Path, write_pid
+from mediaserver.fileutils import Path, write_pid, mkdir_p
 from django.conf import settings
 
 import daemon
@@ -118,6 +118,8 @@ def extract_encode_time(progress_path):
 # Look for .info and .progress files showing the status of an encode.
 def check_progress(info):
    times = {}
+
+   mkdir_p(settings.PROGRESS_CACHE_DIR)
 
    progresses = {}
    for dir_ent in os.listdir(settings.PROGRESS_CACHE_DIR):

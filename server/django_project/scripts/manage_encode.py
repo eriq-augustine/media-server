@@ -2,7 +2,8 @@ from django.conf import settings
 from django.db.models import Sum
 from mediaserver.models import EncodeQueue, Cache
 from mediaserver.encode import hash_path
-from mediaserver.fileutils import UnsafePath, write_pid
+from mediaserver.cache import create_cache_url
+from mediaserver.fileutils import UnsafePath, write_pid, mkdir_p, touch
 
 from datetime import datetime
 import daemon
@@ -68,10 +69,9 @@ def next_encode():
 
    encode_path = get_encode_cache_path(src_path, hash)
 
-   # HACK(eriq): The cache urlpath is pretty janky.
    new_cache_item = Cache(src = encode_task.src,
                           hash = hash,
-                          urlpath = hash + '/' + hash + '.mp4',
+                          urlpath = create_cache_url(hash, hash + '.mp4'),
                           bytes = os.path.getsize(encode_path.syspath()))
    new_cache_item.save()
 
@@ -92,7 +92,7 @@ def encode(path, original_hash, temp_path, target_path):
    cache_dir = target_path.parent()
 
    # Make a directory for the encode.
-   os.mkdir(cache_dir.syspath())
+   mkdir_p(cache_dir.syspath())
 
    # Copy the file from its source into the cache.
    copy_to_cache(path, temp_path)
@@ -100,69 +100,28 @@ def encode(path, original_hash, temp_path, target_path):
    # Encode the file from the cache.
    encode_file(temp_path, original_hash, target_path, cache_dir)
 
-   # TODO(eriq): Look for other subtitiles
-   create_display_info_file(path, original_hash, cache_dir)
+   # Drop the done file.
+   touch(cache_dir.join(original_hash + '_encode.done').syspath())
 
    # rm the temp file.
    os.remove(temp_path.syspath())
 
 def get_encode_cache_path(path, original_hash):
     # <cache dir>/<hash>/<hash>.mp4
-   syspath = os.path.join(settings.ENCODE_CACHE_DIR, original_hash, original_hash + '.mp4')
+   syspath = os.path.join(settings.CACHE_DIR, original_hash, original_hash + '.mp4')
    new_path = UnsafePath.from_abs_syspath(syspath)
    return new_path
 
 def get_temp_cache_path(path, original_hash):
    # The copy does not yet exist and will probably be outside the root,
    #  need an unsafe path.
-   syspath = os.path.join(settings.ENCODE_CACHE_DIR, original_hash, original_hash + '.' + path.ext())
+   syspath = os.path.join(settings.CACHE_DIR, original_hash, original_hash + '.' + path.ext())
    new_path = UnsafePath.from_abs_syspath(syspath)
    return new_path
 
 # Return the new path.
 def copy_to_cache(path, temp_path):
    shutil.copyfile(path.syspath(), temp_path.syspath())
-
-def create_display_info_file(orig_path, original_hash, cache_dir_path):
-   info_path = cache_dir_path.join(original_hash + '_display_info.json')
-   info = {}
-
-   info['name'] = orig_path.display_name()
-   info['subtitles'] = []
-
-   # Check for posters
-   poster_path = cache_dir_path.join(original_hash + '_poster.png')
-   if os.path.exists(poster_path.syspath()):
-      info['poster'] = poster_path.display_name()
-
-   # Check for subtitles
-   subtitle_regex = original_hash + r'_([a-zA-Z]+)_(\d+)\.vtt'
-   for subtitle_file in glob.glob(cache_dir_path.join(original_hash + '_*.vtt').syspath()):
-      basename = os.path.basename(subtitle_file)
-      match = re.search(subtitle_regex, basename)
-
-      lang = match.group(1).lower()
-      if lang in settings.LANGUAGE_CODES:
-         lang = settings.LANGUAGE_CODES[lang]
-
-      short_lang = lang
-      if short_lang in settings.REVERSE_LANGUAGE_CODES:
-         short_lang = settings.REVERSE_LANGUAGE_CODES[short_lang]
-
-      display = lang + ' ' + match.group(2)
-
-      info['subtitles'].append({
-         'file': basename,
-         'display': display,
-         'lang': short_lang,
-         'display_lang': lang
-      })
-
-   with io.open(info_path.syspath(), 'w', encoding = 'utf-8') as json_file:
-      json_file.write(unicode(json.dumps(info, ensure_ascii = False)))
-
-   return info_path
-
 
 def create_info_file(path, info_file):
     args = [settings.FFPROBE_PATH]
@@ -227,5 +186,5 @@ def score_cache_obj(cache_obj):
    return ((day_diff + 1) * cache_obj.bytes) / ((cache_obj.hit_count + 1) / 2.0)
 
 def remove_from_cache(cache_obj):
-   os.remove(os.path.join(settings.ENCODE_CACHE_DIR, cache_obj.urlpath))
+   shutil.rmtree(os.path.join(settings.CACHE_DIR, cache_obj.hash))
    cache_obj.delete()

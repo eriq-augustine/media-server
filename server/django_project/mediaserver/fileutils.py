@@ -137,6 +137,13 @@ def write_pid(abspath):
    with pid_file:
       pid_file.write("{}".format(os.getpid()))
 
+def touch(syspath):
+    open(syspath, 'a').close()
+
+def mkdir_p(syspath):
+   if not os.path.exists(syspath):
+      os.mkdir(syspath)
+
 EXTENSIONS = {
    # Default none to text.
    '': {'mime': 'text/plain', 'template': 'mediaserver/text_file.html'},
@@ -145,12 +152,6 @@ EXTENSIONS = {
 
    'mp3': {'mime': 'audio/mpeg', 'template': 'mediaserver/audio_file.html'},
    'ogg': {'mime': 'audio/ogg', 'template': 'mediaserver/audio_file.html'},
-
-   'mp4': {'mime': 'video/mp4', 'template': 'mediaserver/video_file.html'},
-   'm4v': {'mime': 'video/mp4', 'template': 'mediaserver/video_file.html'},
-   'ogv': {'mime': 'video/ogg', 'template': 'mediaserver/video_file.html'},
-   'ogx': {'mime': 'video/ogg', 'template': 'mediaserver/video_file.html'},
-   'webm': {'mime': 'video/webm', 'template': 'mediaserver/video_file.html'},
 
    'jpg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
    'jpeg': {'mime': 'image/jpeg', 'template': 'mediaserver/image_file.html'},
@@ -163,14 +164,70 @@ EXTENSIONS = {
 
    'html': {'mime': 'text/html', 'template': 'mediaserver/html_file.html'},
 
-   # Formats that require conversion.
-   'avi': {'encode': 'mp4', 'mime': 'video/mp4',
-           'template': 'mediaserver/encode_file.html',
-           'encode_template': 'mediaserver/video_file.html'},
-   'flv': {'encode': 'mp4', 'mime': 'video/mp4',
-           'template': 'mediaserver/encode_file.html',
-           'encode_template': 'mediaserver/video_file.html'},
-   'mkv': {'encode': 'mp4', 'mime': 'video/mp4',
-           'template': 'mediaserver/encode_file.html',
-           'encode_template': 'mediaserver/video_file.html'},
+   # Video formats that we can already play.
+   # These don't need to be encoded, but still need a cache for things like posters and subtitles.
+   'mp4': {
+      'mime': 'video/mp4',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'poster']
+      }
+   },
+   'm4v': {
+      'mime': 'video/mp4',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'poster']
+      }
+   },
+   'ogv': {
+      'mime': 'video/ogg',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'poster']
+      }
+   },
+   'ogx': {
+      'mime': 'video/ogg',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'poster']
+      }
+   },
+   'webm': {
+      'mime': 'video/webm',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'poster']
+      }
+   },
+
+   # Video formats that require full encodes.
+   'avi': {
+      'mime': 'video/mp4',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'video_encode', 'poster'],
+         'encode': 'mp4',
+         'place_holder_template': 'mediaserver/encode_file.html',
+      }
+   },
+   'flv': {
+      'mime': 'video/mp4',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'video_encode', 'poster'],
+         'encode': 'mp4',
+         'place_holder_template': 'mediaserver/encode_file.html',
+      }
+   },
+   'mkv': {
+      'mime': 'video/mp4',
+      'template': 'mediaserver/video_file.html',
+      'cache': {
+         'contents': ['subtitles', 'video_encode', 'poster'],
+         'encode': 'mp4',
+         'place_holder_template': 'mediaserver/encode_file.html',
+      }
+   },
 }
