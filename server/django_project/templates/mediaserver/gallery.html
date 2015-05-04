@@ -1,0 +1,33 @@
+{% extends "mediaserver/base_file.html" %}
+
+{% load staticfiles %}
+
+{% block additional-head %}
+   <link rel="stylesheet" href="{% static 'mediaserver/style/vendor/fotorama.css' %}" />
+   <script src="{% static 'mediaserver/js/vendor/fotorama.js' %}"></script>
+{% endblock %}
+
+{% block page-title %}
+   {{ dir_name }} Gallery
+{% endblock %}
+
+{% block file-content %}
+   <div
+      class="fotorama"
+      data-keyboard="true"
+      data-allowfullscreen="native"
+      data-nav="thumbs"
+      data-loop="true"
+      data-transitionduration="100"
+      data-width="100%"
+   >
+      {% for image in images %}
+         <a
+            href='{% url 'raw' image.path %}'
+            title='{{ name }}'
+            alt='{{ name }}'
+            data-caption='{{ name }}'
+         ></a>
+      {% endfor %}
+   </div>
+{% endblock %}

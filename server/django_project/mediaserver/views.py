@@ -128,6 +128,7 @@ def browse(request, urlpath = ''):
 
    dirs = []
    files = []
+   has_image = False
 
    for dir_ent in os.listdir(path.syspath()):
       dir_ent_path = path.safe_join(dir_ent)
@@ -144,6 +145,9 @@ def browse(request, urlpath = ''):
          if len(ext) == 0:
             ext = 'txt'
 
+         if ext in EXTENSIONS and EXTENSIONS[ext].get('mime', '').startswith('image/'):
+            has_image = True
+
          files.append({'path': dir_ent_path.urlpath(),
                        'name': dir_ent_path.display_name(),
                        'type': ext})
@@ -158,4 +162,55 @@ def browse(request, urlpath = ''):
       'breadcrumbs': fileutils.build_breadcrumbs(path),
    }
 
+   # Add a gallery button if there are images in this directory.
+   if has_image:
+      gallery_url = reverse('gallery', args = [path.urlpath()])
+      context['file_context_action'] = {
+         'text': 'View As Gallery',
+         'action': "window.location.href = '" + gallery_url + "';"
+      }
+
    return render(request, 'mediaserver/browse.html', context)
+
+# Make a gallery with the images in the current directory.
+def gallery(request, urlpath = ''):
+   try:
+      path = Path.from_urlpath(urlpath)
+   except OutOfRootException:
+      raise Http404
+   except PathDoesntExistsException as err:
+      raise Http404
+
+   if path.is_file():
+      return HttpResponseRedirect(reverse('view', args = [path.urlpath()]))
+
+   images = []
+
+   for dir_ent in os.listdir(path.syspath()):
+      dir_ent_path = path.safe_join(dir_ent)
+
+      if dir_ent_path.is_hidden():
+         continue
+
+      if dir_ent_path.is_dir():
+         continue
+
+      ext = dir_ent_path.ext()
+
+      if ext not in EXTENSIONS or not EXTENSIONS[ext].get('mime', '').startswith('image/'):
+         continue
+
+      images.append({'path': dir_ent_path.urlpath(),
+                     'name': dir_ent_path.display_name(),
+                     'type': ext})
+
+   context = {
+      'full_path': path.syspath(),
+      'path': path.urlpath(),
+      'dir_name': path.display_name(),
+      'parent': path.parent().urlpath(),
+      'images': sorted(images, key = itemgetter('name')),
+      'breadcrumbs': fileutils.build_breadcrumbs(path),
+   }
+
+   return render(request, 'mediaserver/gallery.html', context)

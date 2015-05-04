@@ -10,4 +10,5 @@ urlpatterns = patterns('',
    url(r'^view/(?P<urlpath>.*)/?$', views.view, name = 'view'),
    url(r'^raw/(?P<urlpath>.*)/?$', views.raw, name = 'raw'),
    url(r'^cache/(?P<urlpath>.*)/?$', views.fetch_cache, name = 'fetch_cache'),
+   url(r'^gallery/(?P<urlpath>.*)/?$', views.gallery, name = 'gallery'),
 )

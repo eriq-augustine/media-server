@@ -27,7 +27,6 @@
    <div class='page'>
       <div class ='header'>
          <div class ='nav'>
-            {# TODO(eriq): NAV #}
             {% if breadcrumbs %}
                <div class='breadcrumbs'>
                   {% for crumb in breadcrumbs %}
@@ -59,10 +58,19 @@
             </div>
          {% endif %}
          <div class='page-title'>
-            <h1>
-               {% block page-title %}
-               {% endblock %}
-            </h1>
+            <div class='page-title-text'>
+               <h1>
+                  {% block page-title %}
+                  {% endblock %}
+               </h1>
+            </div>
+            {% if file_context_action %}
+               <div class='file-context-button-area'>
+                  <button class='file_contxt_button' onclick="{{ file_context_action.action }}">
+                     {{ file_context_action.text }}
+                  </button>
+               </div>
+            {% endif %}
          </div>
          <div class='content'>
             {% block content %}

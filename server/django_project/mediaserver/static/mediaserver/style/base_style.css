@@ -80,6 +80,18 @@ hr {
    text-align: right;
 }
 
+.page-title {
+   display: flex;
+   flex-direction: row;
+   flex-wrap: nowrap;
+   justify-content: space-between;
+   align-items: center;
+}
+
+.page-title .page-title-text {
+   flex-grow: 1;
+}
+
 .page-title h1 {
    text-align: center;
    margin: 0;
