@@ -91,6 +91,13 @@ def view(request, urlpath):
       'breadcrumbs': fileutils.build_breadcrumbs(path),
    }
 
+   # Add a link to direct download the file.
+   download_url = reverse('raw', args = [path.urlpath()])
+   context['file_context_action'] = {
+      'text': 'Direct Download',
+      'action': "window.location.href = '" + download_url + "';"
+   }
+
    if ext not in EXTENSIONS:
       return render(request, 'mediaserver/unsupported_file.html', context)
 
