@@ -64,7 +64,7 @@ audioStream = sortAudio[0]
 
 # Encode with the two streams.
 # Subtitles will be handled by another process.
-videoEncode = "-c:v libx264 -crf 20 -b:v #{streams['metadata']['bit_rate']} -map 0:#{videoStream['index']}"
+videoEncode = "-c:v libx264 -crf 28 -preset veryfast -b:v #{streams['metadata']['bit_rate']} -map 0:#{videoStream['index']}"
 audioEncode = "-strict -2 -c:a aac -map 0:#{audioStream['index']}"
 
 staticArgs = "-i \"#{filename.gsub('"', '\"')}\" -y -nostats -loglevel warning"
