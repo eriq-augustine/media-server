@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PROJECT_ROOT=/home/eriq/media-server/server
 
