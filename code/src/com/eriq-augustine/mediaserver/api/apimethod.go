@@ -36,7 +36,7 @@ package api;
  *
  * The return value for the handler is very flexible.
  * Up to three values can be returned:
- *  - interface{} - Usually a message (see com/pollr/server/message).
+ *  - interface{} - Usually a message (see com/eriq-augustine/mediaserver/message).
  *                  This will be turned to JSON and will become the http response.
  *                  Feel free to pass something like "" if you are also passing an error.
  *  - int - An http response code (eg http.StatusOK or http.StatusBadRequest).
@@ -61,12 +61,12 @@ import (
    "strconv"
    "strings"
 
-   "com/pollr/server/auth"
-   "com/pollr/server/config"
-   "com/pollr/server/log"
-   "com/pollr/server/messages"
-   "com/pollr/server/util"
-   "com/pollr/server/util/errors"
+   "com/eriq-augustine/mediaserver/auth"
+   "com/eriq-augustine/mediaserver/config"
+   "com/eriq-augustine/mediaserver/log"
+   "com/eriq-augustine/mediaserver/messages"
+   "com/eriq-augustine/mediaserver/util"
+   "com/eriq-augustine/mediaserver/util/errors"
 )
 
 const (

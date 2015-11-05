@@ -14,20 +14,10 @@ type Token string;
 type UserId int;
 
 const (
-   PARAM_CAPTION = "caption"
-   PARAM_COUNT = "count"
-   PARAM_EVENT_ACCESS_TOKEN = "eventAccessToken"
-   PARAM_EVENT_ACCESS_TOKEN_COUNT = "tokenCount"
-   PARAM_EVENT_ID = "eventId"
    PARAM_FILE = "file"
    PARAM_IMAGE = "image"
    PARAM_PASSHASH = "passhash"
-   PARAM_POLL_ID = "pollId"
-   PARAM_POLL_ITEM_ID = "pollItemId"
-   PARAM_PROFILE = "profile"
-   PARAM_PROFILE_USER_ID = "profileUserId"
-   PARAM_SEARCH_TEXT = "searchText"
-   PARAM_SONG_ID = "songId"
+   PARAM_PATH = "path"
    PARAM_TOKEN = "token"
    PARAM_USERNAME = "username"
    PARAM_USER_ID = "userId"
@@ -35,14 +25,6 @@ const (
 
 func CreateRouter() *mux.Router {
    methods := []ApiMethod{
-      {
-         "artist/get",
-         getArtists,
-         true,
-         []ApiMethodParam{
-            {PARAM_COUNT, API_PARAM_TYPE_INT, false},
-         },
-      },
       {
          "auth/token/request",
          requestToken,
@@ -58,6 +40,7 @@ func CreateRouter() *mux.Router {
          true,
          []ApiMethodParam{},
       },
+      /*
       {
          "auth/user/create",
          createAccount,
@@ -65,117 +48,23 @@ func CreateRouter() *mux.Router {
          []ApiMethodParam{
             {PARAM_PASSHASH, API_PARAM_TYPE_STRING, true},
             {PARAM_PROFILE, API_PARAM_TYPE_STRING, true},
-            {PARAM_IMAGE, API_PARAM_TYPE_STRING, false},
+         },
+      },
+      */
+      {
+         "browse/path",
+         browsePath,
+         false, // TODO(eriq): Auth
+         []ApiMethodParam{
+            {PARAM_PATH, API_PARAM_TYPE_STRING, false},
          },
       },
       {
-         "community/stream/upload/image",
-         uploadImage,
-         true,
+         "serve/path",
+         servePath,
+         false, // TODO(eriq): Auth
          []ApiMethodParam{
-            {PARAM_EVENT_ID, API_PARAM_TYPE_INT, true},
-            {PARAM_CAPTION, API_PARAM_TYPE_STRING, false},
-            {PARAM_FILE, API_PARAM_TYPE_STRING, true},
-         },
-      },
-      {
-         "community/stream/get",
-         getCommunityStream,
-         true,
-         []ApiMethodParam{
-            {PARAM_EVENT_ID, API_PARAM_TYPE_INT, true},
-         },
-      },
-      {
-         "event/get/all",
-         getEvents,
-         true,
-         []ApiMethodParam{
-            {PARAM_COUNT, API_PARAM_TYPE_INT, false},
-         },
-      },
-      {
-         "event/join",
-         joinEvent,
-         true,
-         []ApiMethodParam{
-            {PARAM_EVENT_ID, API_PARAM_TYPE_INT, true},
-            {PARAM_EVENT_ACCESS_TOKEN, API_PARAM_TYPE_STRING, false},
-         },
-      },
-      {
-         "event/generateToken",
-         generateEventToken,
-         true,
-         []ApiMethodParam{
-            {PARAM_EVENT_ID, API_PARAM_TYPE_INT, true},
-            {PARAM_EVENT_ACCESS_TOKEN_COUNT, API_PARAM_TYPE_INT, false},
-         },
-      },
-      {
-         "home/get/recent",
-         getRecentHome,
-         true,
-         []ApiMethodParam{
-            {PARAM_COUNT, API_PARAM_TYPE_INT, false},
-         },
-      },
-      {
-         "news/get/recent",
-         getRecentNews,
-         true,
-         []ApiMethodParam{
-            {PARAM_COUNT, API_PARAM_TYPE_INT, false},
-         },
-      },
-      {
-         "poll/get",
-         getPoll,
-         true,
-         []ApiMethodParam{
-            {PARAM_POLL_ID, API_PARAM_TYPE_INT, true},
-         },
-      },
-      {
-         "poll/vote",
-         vote,
-         true,
-         []ApiMethodParam{
-            {PARAM_POLL_ITEM_ID, API_PARAM_TYPE_INT, true},
-         },
-      },
-      {
-         "poll/request",
-         request,
-         true,
-         []ApiMethodParam{
-            {PARAM_POLL_ID, API_PARAM_TYPE_INT, true},
-            {PARAM_SONG_ID, API_PARAM_TYPE_INT, true},
-         },
-      },
-      {
-         "profile/get",
-         getProfile,
-         true,
-         []ApiMethodParam{
-            {PARAM_PROFILE_USER_ID, API_PARAM_TYPE_INT, true},
-         },
-      },
-      {
-         "profile/set",
-         setProfile,
-         true,
-         []ApiMethodParam{
-            {PARAM_PROFILE, API_PARAM_TYPE_STRING, true},
-            {PARAM_IMAGE, API_PARAM_TYPE_STRING, false},
-         },
-      },
-      {
-         "search/songs",
-         searchSongs,
-         true,
-         []ApiMethodParam{
-            {PARAM_SEARCH_TEXT, API_PARAM_TYPE_STRING, true},
+            {PARAM_PATH, API_PARAM_TYPE_STRING, false},
          },
       },
    };
