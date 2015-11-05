@@ -7,6 +7,8 @@
    "cacheBaseDir": "/media/temp/temp/cachetest",
 
    "browseBaseURL": "browse",
+   "rawBaseURL": "raw",
+   "cacheBaseURL": "cache",
 
    "apiVersion": 0,
 

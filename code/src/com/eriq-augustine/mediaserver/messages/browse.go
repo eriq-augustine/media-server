@@ -15,9 +15,9 @@ func NewListDir(dirEntries []model.DirEntry) *ListDir {
 
 type ViewFile struct {
    Success bool
-   DirEntry model.DirEntry
+   File model.File
 }
 
-func NewViewFile(dirEntry model.DirEntry) *ViewFile {
-   return &ViewFile{true, dirEntry};
+func NewViewFile(file model.File) *ViewFile {
+   return &ViewFile{true, file};
 }
