@@ -1,5 +1,10 @@
 "use strict";
 
+// TODO(eriq): Namespace globals
+// Start at root.
+// The hash will be examined before we actually start to possibly override.
+var currentTarget = '/';
+
 function DirEnt(name, modDate, size, isDir, detailsCached) {
    this.name = name;
    this.modDate = modDate;
@@ -151,24 +156,12 @@ function fetch(path, callback) {
    });
 }
 
-function navigateToDirectory(path) {
-   window.location.hash = encodeURIComponent(path);
-}
-
-function navigateToFile(file, path) {
-   window.location.hash = encodeURIComponent(path);
-}
-
 function listingClicked(file, path, ev) {
    // TEST
    console.log("Listing clicked: " + path);
    console.log(file);
 
-   if (file.isDir) {
-      navigateToDirectory(path);
-   } else {
-      navigateToFile(file, path);
-   }
+   changeTarget(path);
 }
 
 function changeTarget(path) {
@@ -190,6 +183,12 @@ function changeTarget(path) {
       reloadTable(files, path);
    } else {
       loadViewer(listing, path);
+   }
+
+   // After the target has been loaded, changed the hash if necessary.
+   currentTarget = path;
+   if (path != cleanHashPath()) {
+      window.location.hash = encodeURIComponent(path);
    }
 }
 
@@ -229,15 +228,18 @@ function cleanHashPath() {
 }
 
 window.addEventListener("hashchange", function(newValue) {
-   changeTarget(cleanHashPath());
+   if (currentTarget != cleanHashPath()) {
+      changeTarget(cleanHashPath());
+   }
 });
 
 $(document).ready(function() {
    // If there is a valid hash path, follow it.
    // Otherwise, set up a new hash at root.
+   var target = '/';
    if (window.location.hash) {
-      changeTarget(cleanHashPath());
-   } else {
-      window.location.hash = '/';
+      target = cleanHashPath();
    }
+
+   changeTarget(target);
 });
