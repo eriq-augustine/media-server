@@ -25,7 +25,7 @@ filebrowser.cache.listingFromCache = function(path) {
 }
 
 filebrowser.cache.loadCache = function(path, callback) {
-   fetch(path, function(isDir, data) {
+   filebrowser.customFetch(path, function(isDir, data) {
       if (isDir) {
          filebrowser.cache._addDirToCache(path, data);
       } else {
