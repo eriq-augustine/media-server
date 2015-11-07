@@ -1,14 +1,15 @@
 "use strict";
 
-// TODO(eriq): Namespace globals
+var filebrowser = filebrowser || {};
+filebrowser.nav = filebrowser.nav || {};
 
 // Start with nothing.
 // The hash will be examined before we actually start to override with a location or root.
 // Only updateCurrentTarget() is allowed to modify this.
-var currentTarget = '';
-var history = [];
+filebrowser.nav._currentTarget = filebrowser.nav._currentTarget || '';
+filebrowser.nav._history = filebrowser.nav._history || [];
 
-function DirEnt(name, modDate, size, isDir, detailsCached) {
+filebrowser.DirEnt = function(name, modDate, size, isDir, detailsCached) {
    this.name = name;
    this.modDate = modDate;
    this.size = size;
@@ -16,21 +17,21 @@ function DirEnt(name, modDate, size, isDir, detailsCached) {
    this.detailsCached = detailsCached;
 }
 
-function Dir(name, modDate) {
+filebrowser.Dir = function(name, modDate) {
    // TODO(eriq): Figure out the best time when none is supplied. Now? Zero time?
    modDate = modDate || new Date();
 
-   DirEnt.call(this, name, modDate, 0, true, false);
+   filebrowser.DirEnt.call(this, name, modDate, 0, true, false);
    this.children = {};
 }
 
-Dir.prototype = Object.create(DirEnt.prototype);
-Dir.prototype.constructor = Dir;
+filebrowser.Dir.prototype = Object.create(filebrowser.DirEnt.prototype);
+filebrowser.Dir.prototype.constructor = filebrowser.Dir;
 
-function File(name, modDate, size, directLink, extraInfo) {
+filebrowser.File = function(name, modDate, size, directLink, extraInfo) {
    extraInfo = extraInfo || {};
 
-   DirEnt.call(this, name, modDate, size, false, false);
+   filebrowser.DirEnt.call(this, name, modDate, size, false, false);
    this.directLink = directLink;
    this.extraInfo = extraInfo;
 
@@ -44,15 +45,15 @@ function File(name, modDate, size, directLink, extraInfo) {
    }
 }
 
-File.prototype = Object.create(DirEnt.prototype);
-File.prototype.constructor = File;
+filebrowser.File.prototype = Object.create(filebrowser.DirEnt.prototype);
+filebrowser.File.prototype.constructor = filebrowser.File;
 
 // Convert a backend DirEntry to a frontend DirEnt.
 function convertBackendDirEntry(dirEntry) {
    if (dirEntry.IsDir) {
-      return new Dir(dirEntry.Name, dirEntry.ModTime);
+      return new filebrowser.Dir(dirEntry.Name, dirEntry.ModTime);
    } else {
-      return new File(dirEntry.Name, dirEntry.ModTime, dirEntry.Size);
+      return new filebrowser.File(dirEntry.Name, dirEntry.ModTime, dirEntry.Size);
    }
 }
 
@@ -64,7 +65,7 @@ function convertBackendFile(file) {
       rawLink: file.RawLink
    };
 
-   return new File(file.DirEntry.Name, file.DirEntry.ModTime, file.DirEntry.Size, file.RawLink, extraInfo);
+   return new filebrowser.File(file.DirEntry.Name, file.DirEntry.ModTime, file.DirEntry.Size, file.RawLink, extraInfo);
 }
 
 function arrayToTableRow(data, isHeader) {
@@ -177,10 +178,10 @@ function changeTarget(path) {
       return;
    }
 
-   var listing = listingFromCache(path);
+   var listing = filebrowser.cache.listingFromCache(path);
 
    if (!listing) {
-      loadCache(path, changeTarget.bind(window, path));
+      filebrowser.cache.loadCache(path, changeTarget.bind(window, path));
       return;
    }
 
@@ -199,15 +200,15 @@ function changeTarget(path) {
 }
 
 function getCurrentTargetPath() {
-   return currentTarget;
+   return filebrowser.nav._currentTarget;
 }
 
-// This is the only function allowed to modify |currentTarget|.
+// This is the only function allowed to modify |_currentTarget|.
 function updateCurrentTarget(path) {
-   currentTarget = path;
+   filebrowser.nav._currentTarget = path;
 
    // Update the history.
-   history.push(path);
+   filebrowser.nav._history.push(path);
 
    // Change the hash if necessary.
    if (path != cleanHashPath()) {
@@ -216,14 +217,13 @@ function updateCurrentTarget(path) {
 }
 
 function loadViewer(file, path) {
-   // TODO(eriq)
    console.log('loadViewer');
    console.log(file);
 
    // TODO(eriq): Re-architect the html some, it's not just a table.
    clearTable();
 
-   $('#tableArea').html(getHTML(file));
+   $('#tableArea').html(filebrowser.filetypes.renderHTML(file));
 }
 
 function reloadTable(files, path) {

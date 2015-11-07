@@ -1,8 +1,11 @@
 "use strict";
 
-var templates = templates || {};
+var filebrowser = filebrowser || {};
+filebrowser.filetypes = filebrowser.filetypes || {};
 
-var extensions = {
+filebrowser.filetypes.templates = filebrowser.filetypes.templates || {};
+
+filebrowser.filetypes.extensions = filebrowser.filetypes.extensions || {
    '':      {template: 'text', mime: 'text/plain'}, // Treat no extension files as text.
    'txt':   {template: 'text', mime: 'text/plain'},
    'nfo':   {template: 'text', mime: 'text/plain'},
@@ -36,7 +39,7 @@ var extensions = {
    'py':    {template: 'code', mime: 'text/x-script.phyton'},
 };
 
-function getHTML(file) {
+filebrowser.filetypes.renderHTML = function(file) {
    // TODO(eriq): More error
    if (file.isDir) {
       console.log("Error: Expecting a file, got a directory.");
@@ -44,82 +47,83 @@ function getHTML(file) {
    }
 
    var template = undefined;
-   if (extensions[file.extension]) {
-      template = extensions[file.extension].template;
+   if (filebrowser.filetypes.extensions[file.extension]) {
+      template = filebrowser.filetypes.extensions[file.extension].template;
    }
 
    switch (template) {
       case 'text':
-         return generalIFrame(file);
+         return filebrowser.filetypes._generalIFrame(file);
       case 'code':
-         return generalIFrame(file);
+         return filebrowser.filetypes._generalIFrame(file);
       case 'audio':
-         return audio(file);
+         return filebrowser.filetypes._audio(file);
       case 'image':
-         return image(file);
+         return filebrowser.filetypes._image(file);
       case 'html':
-         return generalIFrame(file);
+         return filebrowser.filetypes._generalIFrame(file);
       case 'video':
-         return video(file);
+         return filebrowser.filetypes._video(file);
       case 'general':
-         return generalIFrame(file);
+         return filebrowser.filetypes._generalIFrame(file);
       case 'unsupported':
-         return unsupported(file);
+         return filebrowser.filetypes._unsupported(file);
       default:
          // TODO(eriq): More error
          console.log("Error: Unknown extension: " + file.extension);
-         return generalIFrame(file);
+         return filebrowser.filetypes._generalIFrame(file);
    }
 }
 
-function generalIFrame(file) {
-   return templates.generalIFrame.replace('{{RAW_URL}}', file.directLink);
+filebrowser.filetypes._generalIFrame = function(file) {
+   return filebrowser.filetypes.templates.generalIFrame
+      .replace('{{RAW_URL}}', file.directLink);
 }
 
-function audio(file) {
-   return templates.audio
+filebrowser.filetypes._audio = function(file) {
+   return filebrowser.filetypes.templates.audio
       .replace('{{RAW_URL}}', file.directLink)
-      .replace('{{MIME}}', extensions[file.extension].mime);
+      .replace('{{MIME}}', filebrowser.filetypes.extensions[file.extension].mime);
 }
 
-function video(file) {
-   return templates.video
+filebrowser.filetypes._video = function(file) {
+   return filebrowser.filetypes.templates.video
       .replace('{{RAW_URL}}', file.directLink)
-      .replace('{{MIME}}', extensions[file.extension].mime);
+      .replace('{{MIME}}', filebrowser.filetypes.extensions[file.extension].mime);
 }
 
-function image(file) {
-   return templates.image
+filebrowser.filetypes._image = function(file) {
+   return filebrowser.filetypes.templates.image
       .replace('{{RAW_URL}}', file.directLink)
       .replace('{{BASE_NAME}}', file.basename);
 }
 
-function unsupported(file) {
-   return templates.unsupported.replace('{{EXTENSION}}', file.extension);
+filebrowser.filetypes._unsupported = function(file) {
+   return filebrowser.filetypes.templates.unsupported.replace('{{EXTENSION}}', file.extension);
 }
 
-templates.generalIFrame = `
+filebrowser.filetypes.templates.generalIFrame = `
    <iframe src='{{RAW_URL}}'>
       Browser Not Supported
    </iframe>
 `;
 
-templates.audio = `
+filebrowser.filetypes.templates.audio = `
    <audio controls>
       <source src='{{RAW_URL}}' type='{{MIME}}'>
       Browser Not Supported
    </audio>
 `;
 
-templates.image = `
+filebrowser.filetypes.templates.image = `
    <img src='{{RAW_URL}}' title='{{BASE_NAME}}' alt='{{BASE_NAME}}'>
 `;
 
-templates.unsupported = `
+filebrowser.filetypes.templates.unsupported = `
    <h2>File type ({{EXTENSION}}) is not supported.</h2>
 `;
 
-templates.video = `
+filebrowser.filetypes.templates.video = `
    <video controls>
       <source src='{{RAW_URL}}' type='{{MIME}}'>
       Browser Not Supported

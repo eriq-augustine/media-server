@@ -1,13 +1,46 @@
 "use strict";
 
-// Start empty.
-var fileCache = fileCache || {};
+var filebrowser = filebrowser || {};
+filebrowser.cache = filebrowser.cache || {};
 
-function cacheFind(path) {
-   return cacheFindHelper(path.replace(/\/$/, '').split('/'), fileCache);
+// Start empty.
+filebrowser.cache._fileCache = filebrowser.cache._fileCache || {};
+
+filebrowser.cache.listingFromCache = function(path) {
+   var cachedListing = filebrowser.cache._cacheFind(path);
+
+   // If there was nothing in the cache, report a miss.
+   if (!cachedListing) {
+      return undefined;
+   }
+
+   // If this listing has not been fully cached (like a skeleton directory
+   // created when adding a child to the cache or a file that only has the
+   // information from a dirent, then report as a miss so we fetch the full data.
+   if (!cachedListing.detailsCached) {
+      return undefined;
+   }
+
+   return cachedListing;
 }
 
-function cacheFindHelper(pathArray, cache) {
+filebrowser.cache.loadCache = function(path, callback) {
+   fetch(path, function(isDir, data) {
+      if (isDir) {
+         filebrowser.cache._addDirToCache(path, data);
+      } else {
+         filebrowser.cache._addFileToCache(path, data);
+      }
+
+      callback();
+   });
+}
+
+filebrowser.cache._cacheFind = function(path) {
+   return filebrowser.cache._cacheFindHelper(path.replace(/\/$/, '').split('/'), filebrowser.cache._fileCache);
+}
+
+filebrowser.cache._cacheFindHelper = function(pathArray, cache) {
    // Ran out of places to look.
    if (!pathArray || pathArray.length == 0 || !cache || Object.keys(cache).length == 0) {
       return undefined;
@@ -26,38 +59,20 @@ function cacheFindHelper(pathArray, cache) {
 
    // Keep looking in the next kid.
    var element = pathArray.shift();
-   return cacheFindHelper(pathArray, cache[element].children);
-}
-
-function listingFromCache(path) {
-   var cachedListing = cacheFind(path);
-
-   // If there was nothing in the cache, report a miss.
-   if (!cachedListing) {
-      return undefined;
-   }
-
-   // If this listing has not been fully cached (like a skeleton directory
-   // created when adding a child to the cache or a file that only has the
-   // information from a dirent, then report as a miss so we fetch the full data.
-   if (!cachedListing.detailsCached) {
-      return undefined;
-   }
-
-   return cachedListing;
+   return filebrowser.cache._cacheFindHelper(pathArray, cache[element].children);
 }
 
 // "Adding" a file to the cache is usually just refreshing or enhancing it's metadata.
-function addFileToCache(path, file) {
-   fileCache = addFileToCacheHelper(path.replace(/\/$/, '').split('/'), fileCache, file);
+filebrowser.cache._addFileToCache = function(path, file) {
+   filebrowser.cache._fileCache = filebrowser.cache._addFileToCacheHelper(path.replace(/\/$/, '').split('/'), filebrowser.cache._fileCache, file);
 
    // TEST
    console.log('--- Post Add File To Cache');
-   console.log(fileCache);
+   console.log(filebrowser.cache._fileCache);
 }
 
 // |cache| is an object of children.
-function addFileToCacheHelper(pathArray, cache, file) {
+filebrowser.cache._addFileToCacheHelper = function(pathArray, cache, file) {
    var pathPart = pathArray.shift();
 
    // Found the proper place.
@@ -73,24 +88,24 @@ function addFileToCacheHelper(pathArray, cache, file) {
    // then this means that it has not been cached.
    // Make a false entry for the directory and continue on.
    if (!cache.hasOwnProperty(pathPart)) {
-      cache[pathPart] = new Dir(pathPart);
+      cache[pathPart] = new filebrowser.Dir(pathPart);
    }
 
    // Move on to the next dir.
-   cache[pathPart].children = addFileToCacheHelper(pathArray, cache[pathPart].children, file);
+   cache[pathPart].children = filebrowser.cache._addFileToCacheHelper(pathArray, cache[pathPart].children, file);
    return cache;
 }
 
-function addDirToCache(path, files) {
-   fileCache = addDirToCacheHelper(path.replace(/\/$/, '').split('/'), fileCache, files);
+filebrowser.cache._addDirToCache = function(path, files) {
+   filebrowser.cache._fileCache = filebrowser.cache._addDirToCacheHelper(path.replace(/\/$/, '').split('/'), filebrowser.cache._fileCache, files);
 
    // TEST
    console.log('--- Post Add Dir To Cache');
-   console.log(fileCache);
+   console.log(filebrowser.cache._fileCache);
 }
 
 // |cache| is an object of children.
-function addDirToCacheHelper(pathArray, cache, files) {
+filebrowser.cache._addDirToCacheHelper = function(pathArray, cache, files) {
    // TEST
    console.log(cache);
 
@@ -99,7 +114,7 @@ function addDirToCacheHelper(pathArray, cache, files) {
    // If we can't find the next part of the path, then this means that it has not been cached.
    // Make a false entry for the directory and continue on.
    if (!cache.hasOwnProperty(pathPart)) {
-      cache[pathPart] = new Dir(pathPart);
+      cache[pathPart] = new filebrowser.Dir(pathPart);
    }
 
    // Found the proper place.
@@ -120,18 +135,6 @@ function addDirToCacheHelper(pathArray, cache, files) {
    }
 
    // Otherwise, just move on to the next dir.
-   cache[pathPart].children = addDirToCacheHelper(pathArray, cache[pathPart].children, files);
+   cache[pathPart].children = filebrowser.cache._addDirToCacheHelper(pathArray, cache[pathPart].children, files);
    return cache;
-}
-
-function loadCache(path, callback) {
-   fetch(path, function(isDir, data) {
-      if (isDir) {
-         addDirToCache(path, data);
-      } else {
-         addFileToCache(path, data);
-      }
-
-      callback();
-   });
 }
