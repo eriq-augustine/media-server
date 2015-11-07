@@ -1,9 +1,12 @@
 "use strict";
 
 // TODO(eriq): Namespace globals
-// Start at root.
-// The hash will be examined before we actually start to possibly override.
-var currentTarget = '/';
+
+// Start with nothing.
+// The hash will be examined before we actually start to override with a location or root.
+// Only updateCurrentTarget() is allowed to modify this.
+var currentTarget = '';
+var history = [];
 
 function DirEnt(name, modDate, size, isDir, detailsCached) {
    this.name = name;
@@ -168,6 +171,12 @@ function changeTarget(path) {
    // TEST
    console.log("Change Target: " + path);
 
+   // Do nothing if we are already pointing to the target.
+   // Be careful that we don't block the first load.
+   if (getCurrentTargetPath() == path) {
+      return;
+   }
+
    var listing = listingFromCache(path);
 
    if (!listing) {
@@ -185,8 +194,22 @@ function changeTarget(path) {
       loadViewer(listing, path);
    }
 
-   // After the target has been loaded, changed the hash if necessary.
+   // Update the current target.
+   updateCurrentTarget(path);
+}
+
+function getCurrentTargetPath() {
+   return currentTarget;
+}
+
+// This is the only function allowed to modify |currentTarget|.
+function updateCurrentTarget(path) {
    currentTarget = path;
+
+   // Update the history.
+   history.push(path);
+
+   // Change the hash if necessary.
    if (path != cleanHashPath()) {
       window.location.hash = encodeURIComponent(path);
    }
@@ -228,7 +251,7 @@ function cleanHashPath() {
 }
 
 window.addEventListener("hashchange", function(newValue) {
-   if (currentTarget != cleanHashPath()) {
+   if (getCurrentTargetPath() != cleanHashPath()) {
       changeTarget(cleanHashPath());
    }
 });
