@@ -2,6 +2,7 @@ package model;
 
 import (
    "os"
+   "time"
 
    "com/eriq-augustine/mediaserver/util"
 )
@@ -10,10 +11,11 @@ type DirEntry struct {
    Name string
    Size int64
    IsDir bool
+   ModTime time.Time
 }
 
 func DirEntryFromInfo(fileInfo os.FileInfo) DirEntry {
-   return DirEntry{fileInfo.Name(), fileInfo.Size(), fileInfo.IsDir()};
+   return DirEntry{fileInfo.Name(), fileInfo.Size(), fileInfo.IsDir(), fileInfo.ModTime()};
 }
 
 type File struct {

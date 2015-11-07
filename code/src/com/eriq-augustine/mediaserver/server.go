@@ -52,8 +52,14 @@ func main() {
    router := api.CreateRouter();
 
    // Attach additional prefixes for serving raw and cached files.
-   http.Handle("/raw/", http.StripPrefix("/raw/", http.FileServer(http.Dir(config.GetString("staticBaseDir")))));
-   http.Handle("/cache/", http.StripPrefix("/cache/", http.FileServer(http.Dir(config.GetString("cacheBaseDir")))));
+   rawPrefix := "/" + config.GetString("rawBaseURL") + "/";
+   http.Handle(rawPrefix, http.StripPrefix(rawPrefix, http.FileServer(http.Dir(config.GetString("staticBaseDir")))));
+
+   cachePrefix := "/" + config.GetString("cacheBaseURL") + "/";
+   http.Handle(cachePrefix, http.StripPrefix(cachePrefix, http.FileServer(http.Dir(config.GetString("cacheBaseDir")))));
+
+   clientPrefix := "/" + config.GetString("clientBaseURL") + "/";
+   http.Handle(clientPrefix, http.StripPrefix(clientPrefix, http.FileServer(http.Dir(config.GetString("clientBaseDir")))));
 
    http.HandleFunc("/favicon.ico", serveFavicon);
    http.HandleFunc("/robots.txt", serveRobots);

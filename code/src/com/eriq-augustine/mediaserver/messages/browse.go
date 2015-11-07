@@ -6,18 +6,20 @@ import (
 
 type ListDir struct {
    Success bool
+   IsDir bool
    DirEntries []model.DirEntry
 }
 
 func NewListDir(dirEntries []model.DirEntry) *ListDir {
-   return &ListDir{true, dirEntries};
+   return &ListDir{true, true, dirEntries};
 }
 
 type ViewFile struct {
    Success bool
+   IsDir bool
    File model.File
 }
 
 func NewViewFile(file model.File) *ViewFile {
-   return &ViewFile{true, file};
+   return &ViewFile{true, false, file};
 }

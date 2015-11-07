@@ -1,14 +1,14 @@
 {
    "port": 1234,
 
-   "staticBaseURL": "static",
    "staticBaseDir": "/media/nas",
-
+   "clientBaseDir": "../client",
    "cacheBaseDir": "/media/temp/temp/cachetest",
 
    "browseBaseURL": "browse",
    "rawBaseURL": "raw",
    "cacheBaseURL": "cache",
+   "clientBaseURL": "client",
 
    "apiVersion": 0,
 
