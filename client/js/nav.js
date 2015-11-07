@@ -61,6 +61,26 @@ filebrowser.nav._updateCurrentTarget = function(path) {
    if (path != filebrowser.nav.cleanHashPath()) {
       window.location.hash = encodeURIComponent(path);
    }
+
+   // Update the breadcrumbs.
+   filebrowser.view.loadBreadcrumbs(filebrowser.nav._buildBreadcrumbs(path));
+}
+
+filebrowser.nav._buildBreadcrumbs = function(path) {
+   var breadcrumbs = [];
+
+   var runningPath = '';
+   var pathArray = path.replace(/\/$/, '').split('/');
+   pathArray.forEach(function(pathElement) {
+      // Replace the first element (empty) with root.
+      pathElement = pathElement || '/';
+
+      runningPath = filebrowser.util.joinURL(runningPath, pathElement);
+
+      breadcrumbs.push({display: pathElement, path: runningPath});
+   });
+
+   return breadcrumbs;
 }
 
 // Remove the leading hash and decode the path

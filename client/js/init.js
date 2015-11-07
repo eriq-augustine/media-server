@@ -12,4 +12,5 @@ filebrowser.init = function(containerId, fetchFunction) {
    filebrowser.containerQuery = '#' + filebrowser.containerId;
    filebrowser.bodyContentQuery = filebrowser.containerQuery + ' .filebrowser-body-content';
    filebrowser.tableQuery = '#' + filebrowser.tableId;
+   filebrowser.breadcrumbQuery = filebrowser.containerQuery + ' .filebrowser-breadcrumbs-area';
 }

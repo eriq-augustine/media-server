@@ -74,3 +74,36 @@ filebrowser.view.reloadTable = function(files, path) {
       widgets: ['zebra']
    });
 }
+
+// |breadcrumbs| should be [{display: '', path: ''}, ...].
+filebrowser.view.loadBreadcrumbs = function(breadcrumbs) {
+   var breadcrumbsElement = document.createElement('div');
+   breadcrumbsElement.className = 'filebrowser-breadcrumbs';
+
+   breadcrumbs.forEach(function(breadcrumb, index) {
+      var breadcrumbElement = document.createElement('div');
+      breadcrumbElement.className = 'filebrowser-breadcrumb';
+
+      // Don'r register a handler for the last element (we are already there).
+      if (index != breadcrumbs.length - 1) {
+         breadcrumbElement.onclick = filebrowser.nav.changeTarget.bind(window, breadcrumb.path);
+      }
+
+      var breadcrumbTextElement = document.createElement('span');
+      breadcrumbTextElement.textContent = breadcrumb.display;
+
+      breadcrumbElement.appendChild(breadcrumbTextElement);
+      breadcrumbsElement.appendChild(breadcrumbElement);
+
+      // Don't put separators after the first or last elements.
+      if (index != 0 && index != breadcrumbs.length - 1) {
+         var separator = document.createElement('span');
+         separator.className = 'filebrowser-breadcrumb-separator';
+         separator.textContent = '/';
+         breadcrumbsElement.appendChild(separator);
+      }
+   });
+
+   $(filebrowser.breadcrumbQuery).empty();
+   $(filebrowser.breadcrumbQuery).append(breadcrumbsElement);
+}

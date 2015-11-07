@@ -1,0 +1,29 @@
+.filebrowser-breadcrumbs-area {
+}
+
+.filebrowser-breadcrumbs {
+   display: flex;
+   flex-direction: row;
+   flex-wrap: wrap;
+   justify-content: flex-start;
+   align-items: center;
+}
+
+.filebrowser-breadcrumb {
+}
+
+.filebrowser-breadcrumb span {
+   padding-right: 10px;
+   padding-left: 10px;
+   font-size: 20px;
+   font-weight: bold;
+   color: blue;
+   cursor: pointer;
+}
+
+/* Don't give special styling to the last element. */
+.filebrowser-breadcrumbs > .filebrowser-breadcrumb:last-child span {
+   color: inherit;
+   cursor: inherit;
+   font-weight: inherit;
+}
