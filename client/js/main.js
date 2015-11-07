@@ -64,7 +64,7 @@ function fetch(path, callback) {
 
 $(document).ready(function() {
    // Register the function for fetching files from the server.
-   filebrowser.customFetch = fetch;
+   filebrowser.init('mediaserver-filebrowser', fetch);
 
    // If there is a valid hash path, follow it.
    // Otherwise, set up a new hash at root.

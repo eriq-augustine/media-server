@@ -45,30 +45,31 @@ filebrowser.view_filesToTable = function(path, files) {
    return table;
 }
 
-filebrowser.view.clearTable = function() {
-   $('#tableArea').empty();
+filebrowser.view.clearContent = function() {
+   $(filebrowser.bodyContentQuery).empty();
 }
 
 filebrowser.view.loadViewer = function(file, path) {
+   // TEST
    console.log('loadViewer');
    console.log(file);
 
    // TODO(eriq): Re-architect the html some, it's not just a table.
-   filebrowser.view.clearTable();
+   filebrowser.view.clearContent();
 
-   $('#tableArea').html(filebrowser.filetypes.renderHTML(file));
+   $(filebrowser.bodyContentQuery).html(filebrowser.filetypes.renderHTML(file));
 }
 
 filebrowser.view.reloadTable = function(files, path) {
    var table = filebrowser.view_filesToTable(path, files);
-   table.id = 'myTable';
+   table.id = filebrowser.tableId;
    table.className = 'tablesorter';
 
    // TODO(eriq): Better ids
-   filebrowser.view.clearTable();
-   $('#tableArea').append(table);
+   filebrowser.view.clearContent();
+   $(filebrowser.bodyContentQuery).append(table);
 
-   $("#myTable").tablesorter({
+   $(filebrowser.tableQuery).tablesorter({
       sortList: [[0,0]],
       widgets: ['zebra']
    });

@@ -5,16 +5,32 @@
 
       <link rel="stylesheet" href="js/vendor/tablesorter/themes/blue/style.css" type="text/css">
 
+      <link rel="stylesheet" href="css/reset.css" type="text/css">
+      <link rel="stylesheet" href="css/filebrowser.css" type="text/css">
+
       <script type="text/javascript" src="js/util.js"></script>
       <script type="text/javascript" src="js/model.js"></script>
       <script type="text/javascript" src="js/cache.js"></script>
       <script type="text/javascript" src="js/filetypes.js"></script>
       <script type="text/javascript" src="js/nav.js"></script>
       <script type="text/javascript" src="js/view.js"></script>
+      <script type="text/javascript" src="js/init.js"></script>
+
       <script type="text/javascript" src="js/main.js"></script>
    </head>
    <body>
-      <div id='tableArea'>
+      <div class='page'>
+         <!-- TODO(eriq): Move adding the contents to the init -->
+         <div id='mediaserver-filebrowser' class='filebrowser-container'>
+            <div class='filebrowser-head-area'>
+               <div class='filebrowser-breadcrumbs-area'>
+               </div>
+            </div>
+            <div class='filebrowser-body-area'>
+               <div class='filebrowser-body-content'>
+               </div>
+            </div>
+         </div>
       </div>
    </body>
 </html>
