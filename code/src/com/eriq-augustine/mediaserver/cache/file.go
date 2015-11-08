@@ -34,14 +34,16 @@ func NegotiateCache(file model.File) {
    if (ok && requirements.RequiresCache()) {
       cacheDir := ensureCacheDir(file);
 
-      // TODO(eriq): here
-
       if (requirements.Poster) {
          fetchPoster(file, cacheDir);
       }
 
       if (requirements.Subtitles) {
          extractSubtitles(file, cacheDir);
+      }
+
+      if (requirements.VideoEncode) {
+         encodeFile(file, cacheDir);
       }
    }
 }
