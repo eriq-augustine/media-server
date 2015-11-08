@@ -1,7 +1,6 @@
 package cache;
 
 import (
-   "fmt"
    "os"
    "path/filepath"
    "strings"
@@ -31,10 +30,6 @@ func NegotiateCache(file model.File) {
 
    ext := strings.TrimPrefix(filepath.Ext(file.DirEntry.Name), ".");
 
-   // TEST
-   fmt.Println(ext);
-   fmt.Println(filetypes);
-
    requirements, ok := (*filetypes)[ext];
    if (ok && requirements.RequiresCache()) {
       cacheDir := ensureCacheDir(file);
@@ -43,6 +38,10 @@ func NegotiateCache(file model.File) {
 
       if (requirements.Poster) {
          fetchPoster(file, cacheDir);
+      }
+
+      if (requirements.Subtitles) {
+         extractSubtitles(file, cacheDir);
       }
    }
 }

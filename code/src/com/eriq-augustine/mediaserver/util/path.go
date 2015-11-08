@@ -80,10 +80,6 @@ func AbstractPath(realPath string) (string, error) {
       return "", err;
    }
 
-   // TEST
-   fmt.Println(realPath);
-   fmt.Println(abstractPath);
-
    return abstractPath, nil;
 }
 
