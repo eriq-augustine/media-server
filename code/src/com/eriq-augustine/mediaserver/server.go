@@ -13,6 +13,7 @@ import (
 
 const (
    DEFAULT_CONFIG_PATH = "config/config.json"
+   DEFAULT_FILETYPES_CONFIG_PATH = "config/filetypes.json"
    DEFAULT_DEV_CONFIG_PATH = "config/config-dev.json"
    DEFAULT_PROD_CONFIG_PATH = "config/config-prod.json"
    DEFAULT_SECRETS_PATH = "config/secrets.json"
@@ -40,6 +41,7 @@ func main() {
    flag.Parse();
 
    config.LoadFile(DEFAULT_CONFIG_PATH);
+   config.LoadFile(DEFAULT_FILETYPES_CONFIG_PATH);
    config.LoadFile(DEFAULT_SECRETS_PATH);
 
    if (*prod) {

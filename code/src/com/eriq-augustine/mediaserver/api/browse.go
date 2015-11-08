@@ -3,6 +3,7 @@ package api;
 import (
    "os"
 
+   "com/eriq-augustine/mediaserver/cache"
    "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/messages"
    "com/eriq-augustine/mediaserver/model"
@@ -47,7 +48,7 @@ func serveDir(file *os.File, path string) (interface{}, error) {
 
    files := make([]model.DirEntry, 0);
    for _, fileInfo := range(fileInfos) {
-      files = append(files, model.DirEntryFromInfo(fileInfo));
+      files = append(files, model.DirEntryFromInfo(fileInfo, path));
    }
 
    return messages.NewListDir(files), nil;
@@ -62,10 +63,12 @@ func serveFile(osFile *os.File, path string) (interface{}, error) {
       return "", err;
    }
 
-   file, err := model.NewFile(path, model.DirEntryFromInfo(fileInfo));
+   file, err := model.NewFile(path, model.DirEntryFromInfo(fileInfo, path));
    if (err != nil) {
       return "", err;
    }
+
+   cache.NegotiateCache(file);
 
    return messages.NewViewFile(file), nil;
 }

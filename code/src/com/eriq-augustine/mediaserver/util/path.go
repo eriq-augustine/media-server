@@ -1,12 +1,52 @@
 package util;
 
 import (
+   "crypto/rand"
    "fmt"
    "path/filepath"
+   "os"
    "strings"
 
    "com/eriq-augustine/mediaserver/config"
+   "com/eriq-augustine/mediaserver/log"
 );
+
+const (
+   RANDOM_NAME_LENGTH = 64
+   RANDOM_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+)
+
+// Tell if a path exists.
+func PathExists(path string) bool {
+   _, err := os.Stat(path);
+   if (err != nil) {
+      if os.IsNotExist(err) {
+         return false;
+      }
+   }
+
+   return true;
+}
+
+// You should probably pass an extension, but the other two can be empty strings.
+func TempFilePath(extension string, prefix string, suffix string) string {
+   filename := prefix + RandomString(RANDOM_NAME_LENGTH) + suffix + "." + extension;
+   return filepath.Join(os.TempDir(), filename);
+}
+
+func RandomString(length int) string {
+   bytes := make([]byte, length);
+   _, err := rand.Read(bytes);
+   if (err != nil) {
+      log.ErrorE("Unable to generate random string", err);
+   }
+
+   for i, val := range(bytes) {
+      bytes[i] = RANDOM_CHARS[int(val) % len(RANDOM_CHARS)];
+   }
+
+   return string(bytes)
+}
 
 // Take in an abstract path from the clinet and convert it into a real path.
 func RealPath(path string) (string, error) {

@@ -9,13 +9,14 @@ import (
 
 type DirEntry struct {
    Name string
+   Path string
    Size int64
    IsDir bool
    ModTime time.Time
 }
 
-func DirEntryFromInfo(fileInfo os.FileInfo) DirEntry {
-   return DirEntry{fileInfo.Name(), fileInfo.Size(), fileInfo.IsDir(), fileInfo.ModTime()};
+func DirEntryFromInfo(fileInfo os.FileInfo, path string) DirEntry {
+   return DirEntry{fileInfo.Name(), path, fileInfo.Size(), fileInfo.IsDir(), fileInfo.ModTime()};
 }
 
 type File struct {
