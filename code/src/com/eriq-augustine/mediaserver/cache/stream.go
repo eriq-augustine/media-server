@@ -9,7 +9,6 @@ import (
 
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
-   "com/eriq-augustine/mediaserver/model"
    "com/eriq-augustine/mediaserver/util"
 )
 
@@ -37,13 +36,13 @@ func NewStreamInfo() StreamInfo {
    return info;
 }
 
-func extractStreamInfo(file model.File) (StreamInfo, error) {
+func extractStreamInfo(path string) (StreamInfo, error) {
    cmd := exec.Command(
       config.GetString("ffprobePath"),
       "-hide_banner",
       "-show_streams",
       "-show_format",
-      file.DirEntry.Path,
+      path,
    );
 
    output, err := cmd.Output();

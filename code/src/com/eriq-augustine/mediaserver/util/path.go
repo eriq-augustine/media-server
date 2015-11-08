@@ -16,6 +16,13 @@ const (
    RANDOM_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 )
 
+// Get the basename for |path|.
+// That is, the name of the file (last component) without any extension.
+func Basename(path string) string {
+   ext := filepath.Ext(path);
+   return strings.TrimSuffix(filepath.Base(path), ext);
+}
+
 // Tell if a path exists.
 func PathExists(path string) bool {
    _, err := os.Stat(path);
