@@ -80,7 +80,9 @@ func parseProbe(output string) StreamInfo {
             state = PARSE_PROBE_STATE_OPEN;
          } else {
             data := strings.SplitN(strings.TrimPrefix(strings.ToLower(line), "tag:"), "=", 2)
-            streamInfo.Metadata[strings.TrimSpace(data[0])] = strings.TrimSpace(data[1]);
+            if (strings.TrimSpace(data[1]) != "") {
+               streamInfo.Metadata[strings.TrimSpace(data[0])] = strings.TrimSpace(data[1]);
+            }
          }
          break;
       case PARSE_PROBE_STATE_STREAM:
@@ -108,7 +110,9 @@ func parseProbe(output string) StreamInfo {
             state = PARSE_PROBE_STATE_OPEN;
          } else {
             data := strings.SplitN(strings.TrimPrefix(strings.ToLower(line), "tag:"), "=", 2)
-            currentStream[strings.TrimSpace(data[0])] = strings.TrimSpace(data[1]);
+            if (strings.TrimSpace(data[1]) != "") {
+               currentStream[strings.TrimSpace(data[0])] = strings.TrimSpace(data[1]);
+            }
          }
          break;
       default:

@@ -43,7 +43,7 @@ func NegotiateCache(file model.File) {
       }
 
       if (requirements.VideoEncode) {
-         encodeFile(file, cacheDir);
+         requestEncode(file, cacheDir);
       }
    }
 }
