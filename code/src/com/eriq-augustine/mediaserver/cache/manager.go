@@ -14,53 +14,40 @@ const (
 
 // TODO(eriq): Consider doing updates with pointers insead since we will be sending many.
 
-var encodeRequestChan chan EncodeRequest;
+var encodeRequestChan chan model.EncodeRequest;
 var manager EncodeManager;
 
-type EncodeRequest struct {
-   File model.File
-   CacheDir string
-}
-
-type EncodeProgress struct {
-   File model.File
-   CacheDir string
-   CompleteMS int64
-   TotalMS int64
-   Done bool
-}
-
 type EncodeManager struct {
-   Queue []EncodeRequest
-   InProgress *EncodeRequest
-   Progress *EncodeProgress
-   Complete []EncodeRequest
-   ProgressChan chan EncodeProgress
-   NextEncodeChan chan EncodeRequest
+   Queue []model.EncodeRequest
+   InProgress *model.EncodeRequest
+   Progress *model.EncodeProgress
+   Complete []model.EncodeRequest
+   ProgressChan chan model.EncodeProgress
+   NextEncodeChan chan model.EncodeRequest
 }
 
 // Setup the proper threads.
 func init() {
    // Set up the chans.
    // This is an external channel to make requests to the manager.
-   encodeRequestChan = make(chan EncodeRequest, REQUEST_BUFFER_SIZE);
+   encodeRequestChan = make(chan model.EncodeRequest, REQUEST_BUFFER_SIZE);
 
    // These chans are only between the manager and encoder threads.
-   manager.ProgressChan  = make(chan EncodeProgress, REQUEST_BUFFER_SIZE);
-   manager.NextEncodeChan = make(chan EncodeRequest, REQUEST_BUFFER_SIZE);
+   manager.ProgressChan  = make(chan model.EncodeProgress, REQUEST_BUFFER_SIZE);
+   manager.NextEncodeChan = make(chan model.EncodeRequest, REQUEST_BUFFER_SIZE);
 
    // Set up the manager.
-   manager.Queue = make([]EncodeRequest, 0);
+   manager.Queue = make([]model.EncodeRequest, 0);
    manager.InProgress = nil;
    manager.Progress = nil;
-   manager.Complete = make([]EncodeRequest, 0);
+   manager.Complete = make([]model.EncodeRequest, 0);
 
    // Set up the threads.
    go encoderThread(manager.NextEncodeChan, manager.ProgressChan);
    go managerThread(&manager);
 }
 
-func encoderThread(nextEncodeChan chan EncodeRequest, progressChan chan EncodeProgress) {
+func encoderThread(nextEncodeChan chan model.EncodeRequest, progressChan chan model.EncodeProgress) {
    // Wait for requests forever.
    for request := range(nextEncodeChan) {
       encodeFileInternal(request.File, request.CacheDir, progressChan);
@@ -69,8 +56,8 @@ func encoderThread(nextEncodeChan chan EncodeRequest, progressChan chan EncodePr
 
 // Recieve encode requests and perform them one at a time.
 func managerThread(manager *EncodeManager) {
-   var request EncodeRequest;
-   var progress EncodeProgress;
+   var request model.EncodeRequest;
+   var progress model.EncodeProgress;
 
    // Select on encode requests and progress updates.
    for {
@@ -85,7 +72,7 @@ func managerThread(manager *EncodeManager) {
    }
 }
 
-func (manager *EncodeManager) UpdateProgress(update EncodeProgress) {
+func (manager *EncodeManager) UpdateProgress(update model.EncodeProgress) {
    if (update.Done) {
       manager.encodeComplete();
    } else {
@@ -93,7 +80,7 @@ func (manager *EncodeManager) UpdateProgress(update EncodeProgress) {
    }
 }
 
-func (manager *EncodeManager) QueueRequest(request EncodeRequest) {
+func (manager *EncodeManager) QueueRequest(request model.EncodeRequest) {
    manager.Queue = append(manager.Queue, request);
    manager.startNextEncode();
 }
@@ -121,15 +108,15 @@ func (manager *EncodeManager) startNextEncode() {
    manager.NextEncodeChan <- nextEncode;
 }
 
-func getProgress() *EncodeProgress {
+func GetProgress() *model.EncodeProgress {
    return manager.Progress;
 }
 
-func getQueue() []EncodeRequest {
+func GetQueue() []model.EncodeRequest {
    return manager.Queue;
 }
 
-func getRecentEncodes(count int) []EncodeRequest {
+func GetRecentEncodes(count int) []model.EncodeRequest {
    if (count <= 0) {
       count = DEFAULT_RECENT_ENCODE_COUNT;
    }
@@ -149,5 +136,5 @@ func queueEncode(file model.File, cacheDir string) {
    fmt.Println(cacheDir);
 
    // Pass on the request.
-   encodeRequestChan <- EncodeRequest{file, cacheDir};
+   encodeRequestChan <- model.EncodeRequest{file, cacheDir};
 }

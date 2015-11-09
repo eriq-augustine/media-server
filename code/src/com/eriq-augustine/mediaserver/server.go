@@ -6,9 +6,12 @@ import (
    "fmt"
    "net/http"
 
+   ws "golang.org/x/net/websocket"
+
    "com/eriq-augustine/mediaserver/api"
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
+   "com/eriq-augustine/mediaserver/websocket"
 );
 
 const (
@@ -65,6 +68,9 @@ func main() {
 
    http.HandleFunc("/favicon.ico", serveFavicon);
    http.HandleFunc("/robots.txt", serveRobots);
+
+   // Websocket
+   http.Handle("/ws", ws.Handler(websocket.SocketHandler));
 
    http.Handle("/", router);
 

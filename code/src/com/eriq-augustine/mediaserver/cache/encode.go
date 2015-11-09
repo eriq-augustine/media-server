@@ -40,7 +40,7 @@ func requestEncode(file model.File, cacheDir string) (string, bool) {
    return "", false;
 }
 
-func encodeFileInternal(file model.File, cacheDir string, progressChan chan EncodeProgress) error {
+func encodeFileInternal(file model.File, cacheDir string, progressChan chan model.EncodeProgress) error {
    encodePath := getEncodePath(cacheDir);
 
    // Fetch the info on the streams in this file.
@@ -101,7 +101,7 @@ func encodeFileInternal(file model.File, cacheDir string, progressChan chan Enco
          currentTimeUS, err := strconv.ParseInt(strings.TrimPrefix(string(line), "out_time_ms="), 10, 64);
          if (err == nil) {
             if (progressChan != nil) {
-               progressChan <- EncodeProgress{file, cacheDir, currentTimeUS / 1000, videoDurationMS, false};
+               progressChan <- model.EncodeProgress{file, cacheDir, currentTimeUS / 1000, videoDurationMS, false};
             }
          }
       }
@@ -110,7 +110,7 @@ func encodeFileInternal(file model.File, cacheDir string, progressChan chan Enco
    err = cmd.Wait()
 
    if (progressChan != nil) {
-      progressChan <- EncodeProgress{file, cacheDir, videoDurationMS, videoDurationMS, true};
+      progressChan <- model.EncodeProgress{file, cacheDir, videoDurationMS, videoDurationMS, true};
    }
 
    if (err != nil) {
