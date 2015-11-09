@@ -2,7 +2,6 @@ package cache;
 
 import (
    "bufio"
-   "fmt"
    "os/exec"
    "path/filepath"
    "sort"
@@ -20,28 +19,8 @@ const (
 )
 
 var japaneseLangCodes []string = []string{"japanese", "jpn", "jp"};
-var requestQueue chan EncodeRequest;
-
-type EncodeRequest struct {
-   File model.File
-   CacheDir string
-}
 
 type AudioStreamSort []map[string]string;
-
-// Recieve encode requests and perform them one at a time.
-func manageEncodesThread() {
-   // Loop for every on the channel.
-   for request := range(requestQueue) {
-      // TEST
-      log.Debug("Request: " + request.CacheDir);
-
-      encodeFile(request.File, request.CacheDir);
-
-      // TEST
-      log.Debug("Done: " + request.CacheDir);
-   }
-}
 
 func getEncodePath(cacheDir string) string {
    return filepath.Join(cacheDir, "encode.mp4");
@@ -49,12 +28,6 @@ func getEncodePath(cacheDir string) string {
 
 // The second returned value indicates if the encode is good.
 func requestEncode(file model.File, cacheDir string) (string, bool) {
-   // First see if this is the first request and we need to start the encoding thread.
-   if (requestQueue == nil) {
-      requestQueue = make(chan EncodeRequest, REQUEST_BUFFER_SIZE);
-      go manageEncodesThread();
-   }
-
    encodePath := getEncodePath(cacheDir);
 
    // Check for the encode before we generate a new one.
@@ -62,13 +35,12 @@ func requestEncode(file model.File, cacheDir string) (string, bool) {
       return encodePath, true;
    }
 
-   // Pass on the request.
-   requestQueue <- EncodeRequest{file, cacheDir};
+   queueEncode(file, cacheDir);
 
    return "", false;
 }
 
-func encodeFile(file model.File, cacheDir string) error {
+func encodeFileInternal(file model.File, cacheDir string, progressChan chan EncodeProgress) error {
    encodePath := getEncodePath(cacheDir);
 
    // Fetch the info on the streams in this file.
@@ -128,15 +100,19 @@ func encodeFile(file model.File, cacheDir string) error {
       if (strings.HasPrefix(string(line), "out_time_ms")) {
          currentTimeUS, err := strconv.ParseInt(strings.TrimPrefix(string(line), "out_time_ms="), 10, 64);
          if (err == nil) {
-            // TEST
-            if (1 == 2) {
-               fmt.Printf("%d / %d\n", currentTimeUS / 1000, videoDurationMS);
+            if (progressChan != nil) {
+               progressChan <- EncodeProgress{file, cacheDir, currentTimeUS / 1000, videoDurationMS, false};
             }
          }
       }
    }
 
    err = cmd.Wait()
+
+   if (progressChan != nil) {
+      progressChan <- EncodeProgress{file, cacheDir, videoDurationMS, videoDurationMS, true};
+   }
+
    if (err != nil) {
       log.ErrorE("Error waiting for encode to finish", err);
    }
@@ -145,7 +121,7 @@ func encodeFile(file model.File, cacheDir string) error {
 }
 
 // Get the duration in ms.
-func getDurrationMS(streamInfo StreamInfo) int {
+func getDurrationMS(streamInfo StreamInfo) int64 {
    durationString := "-1";
 
    // First check the metadata, then the video and audio streams.
@@ -167,7 +143,7 @@ func getDurrationMS(streamInfo StreamInfo) int {
       return -1;
    }
 
-   return int(durationFloat * 1000.0);
+   return int64(durationFloat * 1000.0);
 }
 
 // For video streams, just pick the first one.
