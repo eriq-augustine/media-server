@@ -1,5 +1,10 @@
 "use strict";
 
+var mediaserver = mediaserver || {};
+
+mediaserver.socketPath = 'ws://localhost:1234/ws'
+mediaserver.apiPath = 'http://localhost:1234/api/v00/browse/path';
+
 // Convert a backend DirEntry to a frontend DirEnt.
 function convertBackendDirEntry(dirEntry) {
    if (dirEntry.IsDir) {
@@ -26,7 +31,7 @@ function fetch(path, callback) {
    var params = {
       "path": path
    };
-   var url = 'http://localhost:1234/api/v00/browse/path?' + $.param(params);
+   var url = mediaserver.apiPath + '?' + $.param(params);
 
    $.ajax(url, {
       dataType: 'json',
@@ -63,6 +68,9 @@ function fetch(path, callback) {
 }
 
 $(document).ready(function() {
+   // Init the websocket.
+   mediaserver.socket.init(mediaserver.socketPath);
+
    // Register the function for fetching files from the server.
    filebrowser.init('mediaserver-filebrowser', fetch);
 
