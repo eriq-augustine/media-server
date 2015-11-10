@@ -2,6 +2,8 @@ package websocket;
 
 import (
    "encoding/json"
+   "io"
+   "strconv"
    "time"
 
    ws "golang.org/x/net/websocket"
@@ -18,7 +20,7 @@ const (
 )
 
 // Keep track of all incoming connections.
-var connectionId int;
+var nextConnectionId int;
 var connections map[int]*WebSocketInfo;
 
 type WebSocketInfo struct {
@@ -27,7 +29,7 @@ type WebSocketInfo struct {
 }
 
 func init() {
-   connectionId = 0;
+   nextConnectionId = 0;
    connections = make(map[int]*WebSocketInfo);
 
    go sendUpdates();
@@ -35,18 +37,33 @@ func init() {
 
 // The entrypoint for the router.
 func SocketHandler(socket *ws.Conn) {
-   var id = connectionId;
-   connectionId++;
+   var id = nextConnectionId;
+   nextConnectionId++;
    connections[id] = &WebSocketInfo{socket, ""};
 
    // The client's encoding information will get initialized in the next update cycle.
 
+   // Defer closing the connection and removing the connection from the pool.
+   defer func(id int) {
+      socketInfo, exists := connections[id];
+      if (exists) {
+         delete(connections, id);
+         socketInfo.Socket.Close();
+      }
+   }(id);
+
    var rawMsg []byte = make([]byte, MESSAGE_SIZE);
    for {
       size, err := socket.Read(rawMsg);
+      if (err == io.EOF) {
+         // No problem here.
+         log.Debug("Client closed websocket: " + strconv.Itoa(id));
+         break;
+      }
+
       if (err != nil) {
          log.ErrorE("Unable to read websocket messgae", err);
-         continue;
+         break;
       }
 
       var msg map[string]interface{};
