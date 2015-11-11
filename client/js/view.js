@@ -50,14 +50,16 @@ filebrowser.view.clearContent = function() {
 }
 
 filebrowser.view.loadViewer = function(file, path) {
-   // TEST
-   console.log('loadViewer');
-   console.log(file);
-
    // TODO(eriq): Re-architect the html some, it's not just a table.
    filebrowser.view.clearContent();
 
-   $(filebrowser.bodyContentQuery).html(filebrowser.filetypes.renderHTML(file));
+   var renderInfo = filebrowser.filetypes.renderHTML(file);
+
+   $(filebrowser.bodyContentQuery).html(renderInfo.html);
+
+   if (renderInfo.callback) {
+      renderInfo.callback();
+   }
 }
 
 filebrowser.view.reloadTable = function(files, path) {

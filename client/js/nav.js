@@ -15,10 +15,7 @@ window.addEventListener("hashchange", function(newValue) {
    }
 });
 
-filebrowser.nav.changeTarget = function(path) {
-   // TEST
-   console.log("Change Target: " + path);
-
+filebrowser.nav.changeTarget = function(path, count) {
    // Do nothing if we are already pointing to the target.
    // Be careful that we don't block the first load.
    if (filebrowser.nav.getCurrentTargetPath() == path) {
@@ -28,7 +25,7 @@ filebrowser.nav.changeTarget = function(path) {
    var listing = filebrowser.cache.listingFromCache(path);
 
    if (!listing) {
-      filebrowser.cache.loadCache(path, filebrowser.nav.changeTarget.bind(window, path));
+      filebrowser.cache.loadCache(path, filebrowser.nav.changeTarget.bind(window, path, count + 1));
       return;
    }
 

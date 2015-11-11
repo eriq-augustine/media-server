@@ -21,7 +21,18 @@ filebrowser.cache.listingFromCache = function(path) {
       return undefined;
    }
 
+   // Check for any cutom invalidation.
+   if (!filebrowser.cache.customValidation(cachedListing)) {
+      return undefined;
+   }
+
    return cachedListing;
+}
+
+// Users can override this to manually invalidate a cache intry.
+// Return true if the entry is valid.
+filebrowser.cache.customValidation = function(cachedListing) {
+   return true;
 }
 
 filebrowser.cache.loadCache = function(path, callback) {
@@ -65,10 +76,6 @@ filebrowser.cache._cacheFindHelper = function(pathArray, cache) {
 // "Adding" a file to the cache is usually just refreshing or enhancing it's metadata.
 filebrowser.cache._addFileToCache = function(path, file) {
    filebrowser.cache._fileCache = filebrowser.cache._addFileToCacheHelper(path.replace(/\/$/, '').split('/'), filebrowser.cache._fileCache, file);
-
-   // TEST
-   console.log('--- Post Add File To Cache');
-   console.log(filebrowser.cache._fileCache);
 }
 
 // |cache| is an object of children.
@@ -80,6 +87,7 @@ filebrowser.cache._addFileToCacheHelper = function(pathArray, cache, file) {
    if (pathArray.length == 0) {
       // TODO(eriq): Fill in this filed as sson as we convert the file.
       file.detailsCached = true;
+      file.cacheTime = new Date();
       cache[pathPart] = file;
       return cache;
    }
@@ -98,17 +106,10 @@ filebrowser.cache._addFileToCacheHelper = function(pathArray, cache, file) {
 
 filebrowser.cache._addDirToCache = function(path, files) {
    filebrowser.cache._fileCache = filebrowser.cache._addDirToCacheHelper(path.replace(/\/$/, '').split('/'), filebrowser.cache._fileCache, files);
-
-   // TEST
-   console.log('--- Post Add Dir To Cache');
-   console.log(filebrowser.cache._fileCache);
 }
 
 // |cache| is an object of children.
 filebrowser.cache._addDirToCacheHelper = function(pathArray, cache, files) {
-   // TEST
-   console.log(cache);
-
    var pathPart = pathArray.shift();
 
    // If we can't find the next part of the path, then this means that it has not been cached.
@@ -121,6 +122,7 @@ filebrowser.cache._addDirToCacheHelper = function(pathArray, cache, files) {
    // Put all the kids in the cache and mark it as having cached kids.
    if (pathArray.length == 0) {
       cache[pathPart].detailsCached = true;
+      cache[pathPart].cacheTime = new Date();
 
       // Build the cache for this subtree and return it.
       // If there is an existing cache here, replace it.

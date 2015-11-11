@@ -8,6 +8,7 @@ filebrowser.DirEnt = function(name, modDate, size, isDir, detailsCached) {
    this.size = size;
    this.isDir = isDir;
    this.detailsCached = detailsCached;
+   this.cacheTime = detailsCached ? new Date() : null;
 }
 
 filebrowser.Dir = function(name, modDate) {

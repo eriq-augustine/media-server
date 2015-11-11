@@ -4,101 +4,117 @@ var filebrowser = filebrowser || {};
 filebrowser.filetypes = filebrowser.filetypes || {};
 
 filebrowser.filetypes.templates = filebrowser.filetypes.templates || {};
+filebrowser.filetypes.overrides = filebrowser.filetypes.overrides || {};
+
+// TODO(eriq): Icons here.
+filebrowser.filetypes.fileClasses = filebrowser.filetypes.fileClasses || {
+   'text': {renderFunction: _renderGeneralIFrame},
+   'audio': {renderFunction: _renderAudio},
+   'image': {renderFunction: _renderImage},
+   'general': {renderFunction: _renderGeneralIFrame},
+   'html': {renderFunction: _renderGeneralIFrame},
+   'video': {renderFunction: _renderVideo},
+   'code': {renderFunction: _renderGeneralIFrame},
+};
 
 filebrowser.filetypes.extensions = filebrowser.filetypes.extensions || {
-   '':      {template: 'text', mime: 'text/plain'}, // Treat no extension files as text.
-   'txt':   {template: 'text', mime: 'text/plain'},
-   'nfo':   {template: 'text', mime: 'text/plain'},
+   '':      {fileClass: 'text', mime: 'text/plain'}, // Treat no extension files as text.
+   'txt':   {fileClass: 'text', mime: 'text/plain'},
+   'nfo':   {fileClass: 'text', mime: 'text/plain'},
 
-   'mp3':   {template: 'audio', mime: 'audio/mpeg'},
-   'ogg':   {template: 'audio', mime: 'audio/ogg'},
+   'mp3':   {fileClass: 'audio', mime: 'audio/mpeg'},
+   'ogg':   {fileClass: 'audio', mime: 'audio/ogg'},
 
-   'jpg':   {template: 'image', mime: 'image/jpeg'},
-   'jpeg':  {template: 'image', mime: 'image/jpeg'},
-   'png':   {template: 'image', mime: 'image/png'},
-   'gif':   {template: 'image', mime: 'image/gif'},
-   'tiff':  {template: 'image', mime: 'image/tiff'},
-   'svg':   {template: 'image', mime: 'image/svg+xml'},
+   'jpg':   {fileClass: 'image', mime: 'image/jpeg'},
+   'jpeg':  {fileClass: 'image', mime: 'image/jpeg'},
+   'png':   {fileClass: 'image', mime: 'image/png'},
+   'gif':   {fileClass: 'image', mime: 'image/gif'},
+   'tiff':  {fileClass: 'image', mime: 'image/tiff'},
+   'svg':   {fileClass: 'image', mime: 'image/svg+xml'},
 
-   'pdf':   {template: 'general', mime: 'application/pdf'},
+   'pdf':   {fileClass: 'general', mime: 'application/pdf'},
 
-   'html':  {template: 'html', mime: 'text/html'},
+   'html':  {fileClass: 'html', mime: 'text/html'},
 
-   'mp4':   {template: 'video', mime: 'video/mp4'},
-   'm4v':   {template: 'video', mime: 'video/mp4'},
-   'ogv':   {template: 'video', mime: 'video/ogg'},
-   'ogx':   {template: 'video', mime: 'video/ogg'},
-   'webm':  {template: 'video', mime: 'video/webm'},
-   'avi':   {template: 'video', mime: 'video/mp4'},
-   'flv':   {template: 'video', mime: 'video/mp4'},
-   'mkv':   {template: 'video', mime: 'video/mp4'},
+   'mp4':   {fileClass: 'video', mime: 'video/mp4'},
+   'm4v':   {fileClass: 'video', mime: 'video/mp4'},
+   'ogv':   {fileClass: 'video', mime: 'video/ogg'},
+   'ogx':   {fileClass: 'video', mime: 'video/ogg'},
+   'webm':  {fileClass: 'video', mime: 'video/webm'},
+   'avi':   {fileClass: 'video', mime: 'video/mp4'},
+   'flv':   {fileClass: 'video', mime: 'video/mp4'},
+   'mkv':   {fileClass: 'video', mime: 'video/mp4'},
 
-   'sh':    {template: 'code', mime: 'application/x-sh'},
-   'java':  {template: 'code', mime: 'text/x-java-source'},
-   'rb':    {template: 'code', mime: 'text/x-script.ruby'},
-   'py':    {template: 'code', mime: 'text/x-script.phyton'},
+   'sh':    {fileClass: 'code', mime: 'application/x-sh'},
+   'java':  {fileClass: 'code', mime: 'text/x-java-source'},
+   'rb':    {fileClass: 'code', mime: 'text/x-script.ruby'},
+   'py':    {fileClass: 'code', mime: 'text/x-script.phyton'},
 };
 
 filebrowser.filetypes.renderHTML = function(file) {
    // TODO(eriq): More error
    if (file.isDir) {
       console.log("Error: Expecting a file, got a directory.");
-      return "";
+      return {html: ""};
    }
 
-   var template = undefined;
+   var fileClass = undefined;
    if (filebrowser.filetypes.extensions[file.extension]) {
-      template = filebrowser.filetypes.extensions[file.extension].template;
+      fileClass = filebrowser.filetypes.extensions[file.extension].fileClass;
    }
 
-   switch (template) {
-      case 'text':
-         return filebrowser.filetypes._generalIFrame(file);
-      case 'code':
-         return filebrowser.filetypes._generalIFrame(file);
-      case 'audio':
-         return filebrowser.filetypes._audio(file);
-      case 'image':
-         return filebrowser.filetypes._image(file);
-      case 'html':
-         return filebrowser.filetypes._generalIFrame(file);
-      case 'video':
-         return filebrowser.filetypes._video(file);
-      case 'general':
-         return filebrowser.filetypes._generalIFrame(file);
-      case 'unsupported':
-         return filebrowser.filetypes._unsupported(file);
-      default:
-         // TODO(eriq): More error
-         console.log("Error: Unknown extension: " + file.extension);
-         return filebrowser.filetypes._generalIFrame(file);
+   if (!filebrowser.filetypes.fileClasses[fileClass]) {
+      // TODO(eriq): More error
+      console.log("Error: Unknown extension: " + file.extension);
+      return {html: _renderGeneralIFrame(file)};
    }
+
+   var renderInfo = filebrowser.filetypes.fileClasses[fileClass].renderFunction(file);
+   if (typeof renderInfo === 'string') {
+      return {html: renderInfo};
+   }
+
+   return renderInfo;
 }
 
-filebrowser.filetypes._generalIFrame = function(file) {
+// Rendering functions can return a string (the html to be rendered) or
+// an object {html: '', callback: ()}.
+filebrowser.filetypes.registerRenderOverride = function(fileClass, renderFunction) {
+   if (!filebrowser.filetypes.fileClasses[fileClass]) {
+      // TODO(eriq): Better logging
+      console.log("Cannot register override, unknown fileClass: " + fileClass);
+      return false;
+   }
+
+   filebrowser.filetypes.fileClasses[fileClass].renderFunction = renderFunction;
+
+   return true;
+}
+
+function _renderGeneralIFrame(file) {
    return filebrowser.filetypes.templates.generalIFrame
       .replace('{{RAW_URL}}', file.directLink);
 }
 
-filebrowser.filetypes._audio = function(file) {
+function _renderAudio(file) {
    return filebrowser.filetypes.templates.audio
       .replace('{{RAW_URL}}', file.directLink)
       .replace('{{MIME}}', filebrowser.filetypes.extensions[file.extension].mime);
 }
 
-filebrowser.filetypes._video = function(file) {
+function _renderVideo(file) {
    return filebrowser.filetypes.templates.video
       .replace('{{RAW_URL}}', file.directLink)
       .replace('{{MIME}}', filebrowser.filetypes.extensions[file.extension].mime);
 }
 
-filebrowser.filetypes._image = function(file) {
+function _renderImage(file) {
    return filebrowser.filetypes.templates.image
       .replace('{{RAW_URL}}', file.directLink)
       .replace('{{BASE_NAME}}', file.basename);
 }
 
-filebrowser.filetypes._unsupported = function(file) {
+function _renderUnsupported(file) {
    return filebrowser.filetypes.templates.unsupported.replace('{{EXTENSION}}', file.extension);
 }
 

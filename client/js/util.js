@@ -15,3 +15,8 @@ filebrowser.util.joinURL = function(base, addition) {
 
    return base + '/' + addition;
 }
+
+// See http://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript/1203361#1203361
+filebrowser.util.ext = function(path) {
+   return path.substr((~-path.lastIndexOf(".") >>> 0) + 2);
+}

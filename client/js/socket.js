@@ -13,12 +13,14 @@ mediaserver.socket.init = function(path) {
 }
 
 mediaserver.socket._onmessage = function(ev) {
-   // TEST
+   /*
    console.log("On Message");
    console.log(ev.data);
+   */
 }
 
 mediaserver.socket._onopen = function(ev) {
+   // TODO(eriq): Better logging.
    console.log("Socket Opened");
 }
 
