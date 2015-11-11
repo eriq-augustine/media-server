@@ -1,3 +1,11 @@
 .page {
-   background-color: #EEE;
+   width: 100%;
+   height: 100%;
+   background-color: #444d6a;
+   font-family: "Lucida Console", Monaco, monospace;
+}
+
+.video-player {
+   margin-left: auto;
+   margin-right: auto;
 }
