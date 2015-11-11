@@ -1,3 +1,15 @@
+.filebrowser-container {
+   padding: 10px;
+}
+
+.filebrowser-container .tablesorter th {
+   font-size: 24px;
+}
+
+.filebrowser-container .tablesorter td {
+   font-size: 20px;
+}
+
 .filebrowser-breadcrumbs-area {
 }
 

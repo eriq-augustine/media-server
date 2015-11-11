@@ -3,6 +3,17 @@
 var filebrowser = filebrowser || {};
 filebrowser.initFields = filebrowser.initFields || {};
 
+filebrowser.initFields._containerTemplate = `
+   <div class='filebrowser-head-area'>
+      <div class='filebrowser-breadcrumbs-area'>
+      </div>
+   </div>
+   <div class='filebrowser-body-area'>
+      <div class='filebrowser-body-content'>
+      </div>
+   </div>
+`
+
 // Valid options: {cacheValidator: func(cacheListing), renderOverrides: {fileClass: func(file)}}
 filebrowser.init = function(containerId, fetchFunction, options) {
    options = options || {};
@@ -18,6 +29,11 @@ filebrowser.init = function(containerId, fetchFunction, options) {
    filebrowser.breadcrumbQuery = filebrowser.containerQuery + ' .filebrowser-breadcrumbs-area';
 
    filebrowser.initFields._parseOptions(options);
+   filebrowser.initFields._initHTML(options);
+}
+
+filebrowser.initFields._initHTML = function() {
+   $(filebrowser.containerQuery).addClass('filebrowser-container').html(filebrowser.initFields._containerTemplate);
 }
 
 filebrowser.initFields._parseOptions = function(options) {
