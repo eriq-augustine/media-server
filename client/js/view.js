@@ -20,7 +20,7 @@ filebrowser.view_arrayToTableRow = function(data, isHeader) {
 
 filebrowser.view_fileToTableRow = function(file) {
    var typeName = filebrowser.filetypes.getFileClass(file) || 'unknown';
-   var data = [file.name, filebrowser.util.formatDate(file.modDate), typeName, file.size];
+   var data = [file.name, filebrowser.util.formatDate(file.modDate), typeName, filebrowser.util.bytesToHuman(file.size)];
    return filebrowser.view_arrayToTableRow(data, false);
 }
 

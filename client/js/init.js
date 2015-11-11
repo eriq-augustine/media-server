@@ -30,6 +30,7 @@ filebrowser.init = function(containerId, fetchFunction, options) {
 
    filebrowser.initFields._parseOptions(options);
    filebrowser.initFields._initHTML(options);
+   filebrowser.initFields._initTablesorter();
 }
 
 filebrowser.initFields._initHTML = function() {
@@ -48,4 +49,18 @@ filebrowser.initFields._parseOptions = function(options) {
    if (options.hasOwnProperty('cacheValidator')) {
       filebrowser.cache.customValidation = options.cacheValidator;
    }
+}
+
+filebrowser.initFields._initTablesorter = function() {
+   $.tablesorter.addParser({
+      id: 'fileSize',
+      is: function(s) { // return false so this parser is not auto detected
+         return false;
+      },
+      format: function(data) {
+         // Convert the data to bytes for sorting.
+         return filebrowser.util.humanToBytes(data);
+      },
+      type: 'numeric'
+   });
 }
