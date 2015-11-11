@@ -19,8 +19,8 @@ filebrowser.view_arrayToTableRow = function(data, isHeader) {
 }
 
 filebrowser.view_fileToTableRow = function(file) {
-   // TODO(eriq): MIME types
-   var data = [file.name, file.modDate, 'TODO', file.size];
+   var typeName = filebrowser.filetypes.getFileClass(file) || 'unknown';
+   var data = [file.name, file.modDate, typeName, file.size];
    return filebrowser.view_arrayToTableRow(data, false);
 }
 

@@ -8,13 +8,13 @@ filebrowser.filetypes.overrides = filebrowser.filetypes.overrides || {};
 
 // TODO(eriq): Icons here.
 filebrowser.filetypes.fileClasses = filebrowser.filetypes.fileClasses || {
-   'text': {renderFunction: _renderGeneralIFrame},
-   'audio': {renderFunction: _renderAudio},
-   'image': {renderFunction: _renderImage},
-   'general': {renderFunction: _renderGeneralIFrame},
-   'html': {renderFunction: _renderGeneralIFrame},
-   'video': {renderFunction: _renderVideo},
-   'code': {renderFunction: _renderGeneralIFrame},
+   'text':     {renderFunction: _renderGeneralIFrame},
+   'audio':    {renderFunction: _renderAudio},
+   'image':    {renderFunction: _renderImage},
+   'general':  {renderFunction: _renderGeneralIFrame},
+   'html':     {renderFunction: _renderGeneralIFrame},
+   'video':    {renderFunction: _renderVideo},
+   'code':     {renderFunction: _renderGeneralIFrame},
 };
 
 filebrowser.filetypes.extensions = filebrowser.filetypes.extensions || {
@@ -89,6 +89,19 @@ filebrowser.filetypes.registerRenderOverride = function(fileClass, renderFunctio
    filebrowser.filetypes.fileClasses[fileClass].renderFunction = renderFunction;
 
    return true;
+}
+
+filebrowser.filetypes.getFileClass = function(file) {
+   if (file.isDir) {
+      return 'directory';
+   }
+
+   var ext = filebrowser.util.ext(file.name);
+   if (filebrowser.filetypes.extensions[ext]) {
+      return filebrowser.filetypes.extensions[ext].fileClass;
+   }
+
+   return undefined;
 }
 
 function _renderGeneralIFrame(file) {
