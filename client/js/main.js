@@ -9,9 +9,9 @@ mediaserver.encodeCacheRefreshSec = 10;
 // Convert a backend DirEntry to a frontend DirEnt.
 function convertBackendDirEntry(dirEntry) {
    if (dirEntry.IsDir) {
-      return new filebrowser.Dir(dirEntry.Name, dirEntry.ModTime);
+      return new filebrowser.Dir(dirEntry.Name, new Date(dirEntry.ModTime));
    } else {
-      return new filebrowser.File(dirEntry.Name, dirEntry.ModTime, dirEntry.Size);
+      return new filebrowser.File(dirEntry.Name, new Date(dirEntry.ModTime), dirEntry.Size);
    }
 }
 
@@ -26,7 +26,7 @@ function convertBackendFile(file, data) {
       subtitles: file.Subtitles || []
    };
 
-   return new filebrowser.File(file.DirEntry.Name, file.DirEntry.ModTime, file.DirEntry.Size, file.RawLink, extraInfo);
+   return new filebrowser.File(file.DirEntry.Name, new Date(file.DirEntry.ModTime), file.DirEntry.Size, file.RawLink, extraInfo);
 }
 
 function fetch(path, callback) {

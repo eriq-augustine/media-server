@@ -26,3 +26,21 @@ filebrowser.util.basename = function(path) {
 filebrowser.util.ext = function(path) {
    return path.substr((~-path.lastIndexOf(".") >>> 0) + 2);
 }
+
+filebrowser.util.formatDate = function(date) {
+   date = new Date(date);
+
+   var month = filebrowser.util.zeroPad(date.getMonth() + 1);
+   var day = filebrowser.util.zeroPad(date.getDate());
+   var hours = filebrowser.util.zeroPad(date.getHours());
+   var minutes = filebrowser.util.zeroPad(date.getMinutes());
+   var seconds = filebrowser.util.zeroPad(date.getSeconds());
+
+   return '' + date.getFullYear() + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+}
+
+filebrowser.util.zeroPad = function(str, desiredLength) {
+   desiredLength = desiredLength || 2;
+
+   return ('00000000000000000000000000' + str).slice(desiredLength * -1);
+}
