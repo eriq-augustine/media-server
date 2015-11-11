@@ -23,7 +23,7 @@ const (
    PARAM_USER_ID = "userId"
 )
 
-func CreateRouter() *mux.Router {
+func CreateRouter(rootRedirect string) *mux.Router {
    methods := []ApiMethod{
       {
          "auth/token/request",
@@ -84,6 +84,12 @@ func CreateRouter() *mux.Router {
    };
    notFoundApiMethod.Validate();
    router.NotFoundHandler = http.HandlerFunc(notFoundApiMethod.Middleware());
+
+   // If supplied, register the root redirect.
+   // Root should never be hit directly, so we can optionally redirect it.
+   if (rootRedirect != "") {
+      router.Handle("/", http.RedirectHandler(rootRedirect, 301));
+   }
 
    return router;
 }

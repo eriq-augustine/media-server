@@ -39,6 +39,10 @@ func serveRobots(response http.ResponseWriter, request *http.Request) {
    fmt.Fprintf(response, "User-agent: *\nDisallow: /\n");
 }
 
+func redirectToClient(response http.ResponseWriter, request *http.Request) {
+   http.Redirect(response, request, "http://localhost:1234/client/", 200);
+}
+
 func main() {
    var prod *bool = flag.Bool("prod", false, "Run in production mode");
    flag.Parse();
@@ -54,7 +58,7 @@ func main() {
       config.LoadFile(DEFAULT_DEV_CONFIG_PATH);
    }
 
-   router := api.CreateRouter();
+   router := api.CreateRouter("/" + config.GetString("clientBaseURL") + "/");
 
    // Attach additional prefixes for serving raw and cached files.
    rawPrefix := "/" + config.GetString("rawBaseURL") + "/";
