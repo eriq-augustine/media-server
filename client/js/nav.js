@@ -59,6 +59,10 @@ filebrowser.nav._updateCurrentTarget = function(path) {
       window.location.hash = encodeURIComponent(path);
    }
 
+   // TODO(eriq): Whether or not to change the title (and hash) should be an option.
+   // Change the page's title.
+   document.title = filebrowser.util.basename(path);
+
    // Update the breadcrumbs.
    filebrowser.view.loadBreadcrumbs(filebrowser.nav._buildBreadcrumbs(path));
 }
