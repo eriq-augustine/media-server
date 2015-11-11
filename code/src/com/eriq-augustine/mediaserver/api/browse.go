@@ -11,8 +11,7 @@ import (
 );
 
 func browsePath(path string) (interface{}, error) {
-   // TEST
-   log.Debug("Serving browse: " + path);
+   log.Debug("Serving: " + path);
 
    path, err := util.RealPath(path);
    if (err != nil) {
@@ -38,9 +37,6 @@ func browsePath(path string) (interface{}, error) {
 }
 
 func serveDir(file *os.File, path string) (interface{}, error) {
-   // TEST
-   log.Debug("Serving Dir: " + path);
-
    fileInfos, err := file.Readdir(0);
    if (err != nil) {
       return "", err;
@@ -55,9 +51,6 @@ func serveDir(file *os.File, path string) (interface{}, error) {
 }
 
 func serveFile(osFile *os.File, path string) (interface{}, error) {
-   // TEST
-   log.Debug("Serving File: " + path);
-
    fileInfo, err := osFile.Stat();
    if (err != nil) {
       return "", err;
@@ -68,7 +61,7 @@ func serveFile(osFile *os.File, path string) (interface{}, error) {
       return "", err;
    }
 
-   cache.NegotiateCache(file);
+   file, cacheReady := cache.NegotiateCache(file);
 
-   return messages.NewViewFile(file), nil;
+   return messages.NewViewFile(file, cacheReady), nil;
 }

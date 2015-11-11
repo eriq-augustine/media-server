@@ -4,8 +4,8 @@ package cache;
 // A poster is an image to use before the video has played.
 
 import (
-   "os/exec"
    "io/ioutil"
+   "os/exec"
    "path/filepath"
    "strconv"
    "strings"
@@ -22,12 +22,12 @@ var subtitleExts []string = []string{"srt", "sub", "sbv", "ass", "ssa", "aqt", "
 // Get all the subtitles available for |file|.
 // This can include internal subtitles (if |file| is a container format),
 // adjacent files, and subtitle directories.
-func extractSubtitles(file model.File, cacheDir string) error {
+func extractSubtitles(file model.File, cacheDir string) ([]string, error) {
    doneFile := filepath.Join(cacheDir, "subtitles.done");
 
    // Check for the subs before we generate a new one.
    if (util.PathExists(doneFile)) {
-      return nil;
+      return fetchCachedSubs(cacheDir), nil;
    }
 
    var numSubtitleFiles = 0;
@@ -41,7 +41,27 @@ func extractSubtitles(file model.File, cacheDir string) error {
 
    // TODO(eriq): Remove dups
 
-   return nil;
+   ioutil.WriteFile(doneFile, []byte(""), 0644);
+
+   return fetchCachedSubs(cacheDir), nil;
+}
+
+func fetchCachedSubs(cacheDir string) []string {
+   var subs []string = make([]string, 0);
+
+   fileInfos, err := ioutil.ReadDir(cacheDir);
+   if (err != nil) {
+      log.ErrorE("Unable to read cache dir for subs: " + cacheDir, err);
+      return subs;
+   }
+
+   for _, fileInfo := range(fileInfos) {
+      if (!fileInfo.IsDir() && strings.HasPrefix(fileInfo.Name(), "sub_")) {
+         subs = append(subs, filepath.Join(cacheDir, fileInfo.Name()));
+      }
+   }
+
+   return subs;
 }
 
 // Search for subtitle files related to |file|.

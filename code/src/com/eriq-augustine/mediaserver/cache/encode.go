@@ -2,6 +2,7 @@ package cache;
 
 import (
    "bufio"
+   "io/ioutil"
    "os/exec"
    "path/filepath"
    "sort"
@@ -26,13 +27,19 @@ func getEncodePath(cacheDir string) string {
    return filepath.Join(cacheDir, "encode.mp4");
 }
 
+func getEncodeDonePath(cacheDir string) string {
+   return filepath.Join(cacheDir, "encode.done");
+}
+
+func isEncodeDone(cacheDir string) bool {
+   return util.PathExists(getEncodeDonePath(cacheDir)) && util.PathExists(getEncodePath(cacheDir));
+}
+
 // The second returned value indicates if the encode is good.
 func requestEncode(file model.File, cacheDir string) (string, bool) {
-   encodePath := getEncodePath(cacheDir);
-
    // Check for the encode before we generate a new one.
-   if (util.PathExists(encodePath)) {
-      return encodePath, true;
+   if (isEncodeDone(cacheDir)) {
+      return getEncodePath(cacheDir), true;
    }
 
    queueEncode(file, cacheDir);
@@ -116,6 +123,9 @@ func encodeFileInternal(file model.File, cacheDir string, progressChan chan mode
    if (err != nil) {
       log.ErrorE("Error waiting for encode to finish", err);
    }
+
+   // Mark the encode as complete.
+   ioutil.WriteFile(getEncodeDonePath(cacheDir), []byte(""), 0644);
 
    return nil;
 }

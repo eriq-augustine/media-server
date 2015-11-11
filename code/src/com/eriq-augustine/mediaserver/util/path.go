@@ -81,8 +81,12 @@ func RealPath(path string) (string, error) {
 
 // Given a real path, find an abstract path for it.
 // Abstract paths are just relative paths from the static base directory.
-func AbstractPath(realPath string) (string, error) {
-   abstractPath, err := filepath.Rel(config.GetString("staticBaseDir"), realPath);
+func AbstractPath(realPath string, baseDir string) (string, error) {
+   if (baseDir == "") {
+      baseDir = config.GetString("staticBaseDir");
+   }
+
+   abstractPath, err := filepath.Rel(baseDir, realPath);
    if (err != nil) {
       return "", err;
    }
@@ -92,7 +96,7 @@ func AbstractPath(realPath string) (string, error) {
 
 // Given a clean path, get the link to that resource.
 func RawLink(path string) (string, error) {
-   abstractPath, err := AbstractPath(path);
+   abstractPath, err := AbstractPath(path, config.GetString("staticBaseDir"));
    if (err != nil) {
       return "", err;
    }
@@ -100,16 +104,11 @@ func RawLink(path string) (string, error) {
    return filepath.Join("/", config.GetString("rawBaseURL"), abstractPath), nil;
 }
 
-func CacheLink(path string) (bool, string) {
-   // TODO(eriq): Do Caching
-   return false, "";
-
-   /*
-   abstractPath, err := AbstractPath(path);
+func CacheLink(path string) (string, error) {
+   abstractPath, err := AbstractPath(path, config.GetString("cacheBaseDir"));
    if (err != nil) {
       return "", err;
    }
 
    return filepath.Join("/", config.GetString("cacheBaseURL"), abstractPath), nil;
-   */
 }

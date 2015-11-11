@@ -3,7 +3,7 @@ package cache;
 // Code for requesting encodes, keeping track of the progress, and recently encoded files.
 
 import (
-   "fmt"
+   "sync"
 
    "com/eriq-augustine/mediaserver/model"
 )
@@ -17,6 +17,10 @@ const (
 var encodeRequestChan chan model.EncodeRequest;
 var manager EncodeManager;
 
+// Keep track of all encode requests so we don't double queue.
+var allEncodeRequests map[string]bool;
+var requestMutex *sync.Mutex;
+
 type EncodeManager struct {
    Queue []model.EncodeRequest
    InProgress *model.EncodeRequest
@@ -28,6 +32,10 @@ type EncodeManager struct {
 
 // Setup the proper threads.
 func init() {
+   // Set up the deduplication map.
+   allEncodeRequests = make(map[string]bool);
+   requestMutex = &sync.Mutex{};
+
    // Set up the chans.
    // This is an external channel to make requests to the manager.
    encodeRequestChan = make(chan model.EncodeRequest, REQUEST_BUFFER_SIZE);
@@ -132,9 +140,14 @@ func GetRecentEncodes(count int) []model.EncodeRequest {
 // This will not block.
 // Once this is called, the manager owns the encode.
 func queueEncode(file model.File, cacheDir string) {
-   // TEST
-   fmt.Println(cacheDir);
+   requestMutex.Lock();
+   defer requestMutex.Unlock();
 
-   // Pass on the request.
+   _, exists := allEncodeRequests[cacheDir];
+   if (exists) {
+      return;
+   }
+
+   allEncodeRequests[cacheDir] = true;
    encodeRequestChan <- model.EncodeRequest{file, cacheDir};
 }

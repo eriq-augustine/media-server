@@ -25,27 +25,62 @@ func (requirements CacheRequirements) RequiresCache() bool {
    return requirements.VideoEncode || requirements.Subtitles || requirements.Poster;
 }
 
-func NegotiateCache(file model.File) {
+// The bool return will be true if the cache is ready (or no cache is required) and the file return is valid.
+// If the bool return is false, then the cache needs more time to prep.
+// Even if the cache is not ready, you should still take the returned file.
+// Other components of the cache may have been filled.
+func NegotiateCache(file model.File) (model.File, bool) {
+   var cacheReady bool = true;
    var filetypes *map[string]CacheRequirements = loadFileRequirements();
 
    ext := strings.TrimPrefix(filepath.Ext(file.DirEntry.Name), ".");
 
    requirements, ok := (*filetypes)[ext];
+
+   // If we don't know about this extension or don't need the cache, then return ok.
+   if (!ok || !requirements.RequiresCache()) {
+      return file, true;
+   }
+
    if (ok && requirements.RequiresCache()) {
       cacheDir := ensureCacheDir(file);
 
       if (requirements.Poster) {
-         fetchPoster(file, cacheDir);
+         posterPath, err := fetchPoster(file, cacheDir);
+         if (err == nil) {
+            posterLink, err := util.CacheLink(posterPath);
+            if (err == nil) {
+               file.Poster = &posterLink;
+            }
+         }
       }
 
       if (requirements.Subtitles) {
-         extractSubtitles(file, cacheDir);
+         subs, err := extractSubtitles(file, cacheDir);
+         if (err == nil) {
+            for _, sub := range(subs) {
+               subLink, err := util.CacheLink(sub);
+               if (err == nil) {
+                  file.Subtitles = append(file.Subtitles, subLink);
+               }
+            }
+         }
       }
 
       if (requirements.VideoEncode) {
-         requestEncode(file, cacheDir);
+         encodePath, encodeComplete := requestEncode(file, cacheDir);
+         if (encodeComplete) {
+            cacheLink, err := util.CacheLink(encodePath);
+            if (err == nil) {
+               file.CacheLink = &cacheLink;
+            }
+         } else {
+            cacheReady = false;
+         }
       }
    }
+
+   return file, cacheReady;
 }
 
 func ensureCacheDir(file model.File) string {
