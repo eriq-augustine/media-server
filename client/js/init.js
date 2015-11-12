@@ -7,6 +7,8 @@ filebrowser.initFields._containerTemplate = `
    <div class='filebrowser-head-area'>
       <div class='filebrowser-breadcrumbs-area'>
       </div>
+      <div class='filebrowser-context-actions-area'>
+      </div>
    </div>
    <div class='filebrowser-body-area'>
       <div class='filebrowser-body-content'>
@@ -27,6 +29,7 @@ filebrowser.init = function(containerId, fetchFunction, options) {
    filebrowser.bodyContentQuery = filebrowser.containerQuery + ' .filebrowser-body-content';
    filebrowser.tableQuery = '#' + filebrowser.tableId;
    filebrowser.breadcrumbQuery = filebrowser.containerQuery + ' .filebrowser-breadcrumbs-area';
+   filebrowser.contextActionsQuery = filebrowser.containerQuery + ' .filebrowser-context-actions-area';
 
    filebrowser.initFields._parseOptions(options);
    filebrowser.initFields._initHTML(options);

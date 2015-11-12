@@ -109,3 +109,21 @@ filebrowser.view.loadBreadcrumbs = function(breadcrumbs) {
    $(filebrowser.breadcrumbQuery).empty();
    $(filebrowser.breadcrumbQuery).append(breadcrumbsElement);
 }
+
+filebrowser.view.loadContextActions = function(listing) {
+   $(filebrowser.contextActionsQuery).empty();
+   if (!listing.isDir) {
+      // Files gets a direct download link.
+      var downloadLink = document.createElement('a');
+      downloadLink.setAttribute('href', listing.directLink);
+      downloadLink.setAttribute('download', listing.name);
+
+      var downloadIcon = document.createElement('i');
+      downloadIcon.className = 'fa fa-download';
+      downloadIcon.setAttribute('data-toggle', 'tooltip');
+      downloadIcon.setAttribute('title', 'Download');
+
+      downloadLink.appendChild(downloadIcon);
+      $(filebrowser.contextActionsQuery).append(downloadLink);
+   }
+}

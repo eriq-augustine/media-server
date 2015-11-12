@@ -40,7 +40,7 @@ filebrowser.nav.changeTarget = function(path, count) {
    }
 
    // Update the current target.
-   filebrowser.nav._updateCurrentTarget(path);
+   filebrowser.nav._updateCurrentTarget(path, listing);
 }
 
 filebrowser.nav.getCurrentTargetPath = function() {
@@ -48,7 +48,7 @@ filebrowser.nav.getCurrentTargetPath = function() {
 }
 
 // This is the only function allowed to modify |_currentTarget|.
-filebrowser.nav._updateCurrentTarget = function(path) {
+filebrowser.nav._updateCurrentTarget = function(path, listing) {
    filebrowser.nav._currentTarget = path;
 
    // Update the history.
@@ -65,6 +65,9 @@ filebrowser.nav._updateCurrentTarget = function(path) {
 
    // Update the breadcrumbs.
    filebrowser.view.loadBreadcrumbs(filebrowser.nav._buildBreadcrumbs(path));
+
+   // Update any context actions.
+   filebrowser.view.loadContextActions(listing);
 }
 
 filebrowser.nav._buildBreadcrumbs = function(path) {

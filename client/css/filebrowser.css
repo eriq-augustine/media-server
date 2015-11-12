@@ -2,6 +2,25 @@
    padding: 10px;
 }
 
+.filebrowser-head-area {
+   display: flex;
+   flex-direction: row;
+   flex-wrap: nowrap;
+   align-content: stretch;
+   align-items: center;
+   justify-content: space-between;
+}
+
+.filebrowser-context-actions-area {
+   padding-right: 10px;
+}
+
+.filebrowser-context-actions-area i {
+   font-size: 20px;
+   color: #DDE3F3;
+   cursor: pointer;
+}
+
 .filebrowser-head-area,
 .filebrowser-body-area {
    padding: 5px;
