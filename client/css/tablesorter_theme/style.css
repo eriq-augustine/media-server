@@ -26,6 +26,7 @@ table.tablesorter tbody td {
    padding: 4px;
    background-color: #292f40;
    vertical-align: top;
+   cursor: pointer;
 }
 
 table.tablesorter tbody tr.odd td {

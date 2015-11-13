@@ -1,5 +1,11 @@
 .filebrowser-container {
+   height: 100%;
    padding: 10px;
+   display: flex;
+   flex-direction: column;
+   flex-wrap: nowrap;
+   align-items: stretch;
+   justify-content: space-between;
 }
 
 .filebrowser-head-area {
@@ -61,6 +67,6 @@
 }
 
 .filebrowser-body-area {
+   flex-grow: 1;
    margin-top: 10px;
-   height: 100%;
 }

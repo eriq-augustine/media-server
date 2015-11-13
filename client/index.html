@@ -24,8 +24,26 @@
    </head>
    <body>
       <div class='page'>
-         <!-- TODO(eriq): Move adding the contents to the init -->
-         <div id='mediaserver-filebrowser' class='filebrowser-container'>
+         <div class='content'>
+            <div id='mediaserver-filebrowser' class='filebrowser-container'>
+            </div>
+            <div class='encode-activity-container'>
+               <div class='encode-activity-section current-encode-section'>
+                  <p>Currently Encoding</p>
+                  <div class='encode-list-container current-encode'>
+                  </div>
+               </div>
+               <div class='encode-activity-section queue-section'>
+                  <p>Encode Queue</p>
+                  <div class='encode-list-container queue'>
+                  </div>
+               </div>
+               <div class='encode-activity-section recent-encodes-section'>
+                  <p>Recent Encodes</p>
+                  <div class='encode-list-container recent-encodes'>
+                  </div>
+               </div>
+            </div>
          </div>
       </div>
    </body>

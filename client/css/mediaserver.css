@@ -6,7 +6,61 @@
    font-family: "Lucida Console", Monaco, monospace;
 }
 
+.content {
+   display: flex;
+   flex-direction: row;
+   flex-wrap: nowrap;
+   align-items: flex-start;
+   justify-content: space-between;
+}
+
+#mediaserver-filebrowser {
+   flex-grow: 1;
+}
+
 .video-player {
    margin-left: auto;
    margin-right: auto;
+}
+
+.encode-activity-container {
+   display: none; /* Start hidden and show when we get data. */
+   height: 100%;
+   max-width: 300px;
+   margin-top: 10px;
+   margin-right: 10px;
+   background-color: #292f40;
+   border-radius: 5px;
+   box-shadow: 0 0 5px 4px rgba(0,0,0,0.25);
+}
+
+.encode-activity-section {
+   text-align: center;
+   padding: 10px;
+}
+
+.encode-list-element-placebolder {
+   color: #DDE3F3;
+   font-size: 16px;
+}
+
+.encode-list-element {
+   cursor: pointer;
+}
+
+.encode-list-element span {
+   color: #DDE3F3;
+   font-size: 20px;
+   word-wrap: break-word;
+}
+
+.encode-list-element progress {
+   margin-top: 10px;
+}
+
+.encode-activity-section p {
+   color: #44556f;
+   font-size: 20px;
+   font-weight: bold;
+   margin-bottom: 10px;
 }

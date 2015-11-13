@@ -13,10 +13,15 @@ mediaserver.socket.init = function(path) {
 }
 
 mediaserver.socket._onmessage = function(ev) {
-   /*
-   console.log("On Message");
-   console.log(ev.data);
-   */
+   if (!ev.data) {
+      return;
+   }
+
+   var jsonData = JSON.parse(ev.data);
+
+   if (jsonData && jsonData.Success) {
+      mediaserver.renderEncodeActivity(jsonData);
+   }
 }
 
 mediaserver.socket._onopen = function(ev) {
