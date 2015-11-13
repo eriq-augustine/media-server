@@ -8,29 +8,30 @@ filebrowser.filetypes.overrides = filebrowser.filetypes.overrides || {};
 
 // TODO(eriq): Icons here.
 filebrowser.filetypes.fileClasses = filebrowser.filetypes.fileClasses || {
-   'text':     {renderFunction: _renderGeneralIFrame},
-   'audio':    {renderFunction: _renderAudio},
-   'image':    {renderFunction: _renderImage},
-   'general':  {renderFunction: _renderGeneralIFrame},
-   'html':     {renderFunction: _renderGeneralIFrame},
-   'video':    {renderFunction: _renderVideo},
-   'code':     {renderFunction: _renderGeneralIFrame},
+   'text':     {renderFunction: _renderGeneralIFrame, icon: 'file-text-o'},
+   'audio':    {renderFunction: _renderAudio,         icon: 'file-audio-o'},
+   'image':    {renderFunction: _renderImage,         icon: 'file-image-o'},
+   'general':  {renderFunction: _renderGeneralIFrame, icon: 'file-o'},
+   'html':     {renderFunction: _renderGeneralIFrame, icon: 'file-code-o'},
+   'video':    {renderFunction: _renderVideo,         icon: 'file-video-o'},
+   'code':     {renderFunction: _renderGeneralIFrame, icon: 'file-code-o'},
+   'archive':  {renderFunction: _renderGeneralIFrame, icon: 'file-archive-o'},
 };
 
 filebrowser.filetypes.extensions = filebrowser.filetypes.extensions || {
    '':      {fileClass: 'text', mime: 'text/plain'}, // Treat no extension files as text.
-   'txt':   {fileClass: 'text', mime: 'text/plain'},
    'nfo':   {fileClass: 'text', mime: 'text/plain'},
+   'txt':   {fileClass: 'text', mime: 'text/plain'},
 
    'mp3':   {fileClass: 'audio', mime: 'audio/mpeg'},
    'ogg':   {fileClass: 'audio', mime: 'audio/ogg'},
 
-   'jpg':   {fileClass: 'image', mime: 'image/jpeg'},
-   'jpeg':  {fileClass: 'image', mime: 'image/jpeg'},
-   'png':   {fileClass: 'image', mime: 'image/png'},
    'gif':   {fileClass: 'image', mime: 'image/gif'},
-   'tiff':  {fileClass: 'image', mime: 'image/tiff'},
+   'jpeg':  {fileClass: 'image', mime: 'image/jpeg'},
+   'jpg':   {fileClass: 'image', mime: 'image/jpeg'},
+   'png':   {fileClass: 'image', mime: 'image/png'},
    'svg':   {fileClass: 'image', mime: 'image/svg+xml'},
+   'tiff':  {fileClass: 'image', mime: 'image/tiff'},
 
    'pdf':   {fileClass: 'general', mime: 'application/pdf'},
 
@@ -45,10 +46,52 @@ filebrowser.filetypes.extensions = filebrowser.filetypes.extensions || {
    'flv':   {fileClass: 'video', mime: 'video/mp4'},
    'mkv':   {fileClass: 'video', mime: 'video/mp4'},
 
-   'sh':    {fileClass: 'code', mime: 'application/x-sh'},
+   'as':    {fileClass: 'code', mime: 'text/plain'},
+   'asm':   {fileClass: 'code', mime: 'text/x-asm'},
+   'asp':   {fileClass: 'code', mime: 'text/asp'},
+   'aspx':  {fileClass: 'code', mime: 'text/asp'},
+   'c':     {fileClass: 'code', mime: 'text/x-c'},
+   'coffee':{fileClass: 'code', mime: 'text/plain'},
+   'cpp':   {fileClass: 'code', mime: 'text/x-c++src'},
+   'cs':    {fileClass: 'code', mime: 'text/plain'},
+   'css':   {fileClass: 'code', mime: 'text/css'},
+   'dart':  {fileClass: 'code', mime: 'text/plain'},
+   'd':     {fileClass: 'code', mime: 'text/plain'},
+   'erl':   {fileClass: 'code', mime: 'text/plain'},
+   'f':     {fileClass: 'code', mime: 'text/x-fortran'},
+   'fs':    {fileClass: 'code', mime: 'text/plain'},
+   'go':    {fileClass: 'code', mime: 'text/plain'},
+   'hs':    {fileClass: 'code', mime: 'text/plain'},
    'java':  {fileClass: 'code', mime: 'text/x-java-source'},
-   'rb':    {fileClass: 'code', mime: 'text/x-script.ruby'},
+   'js':    {fileClass: 'code', mime: 'application/x-javascript'},
+   'lsp':   {fileClass: 'code', mime: 'application/x-lisp'},
+   'lua':   {fileClass: 'code', mime: 'text/plain'},
+   'matlab':{fileClass: 'code', mime: 'text/plain'},
+   'm':     {fileClass: 'code', mime: 'text/plain'},
+   'php':   {fileClass: 'code', mime: 'application/x-php'},
+   'pl':    {fileClass: 'code', mime: 'text/x-script.perl'},
+   'ps':    {fileClass: 'code', mime: 'text/plain'},
    'py':    {fileClass: 'code', mime: 'text/x-script.phyton'},
+   'rb':    {fileClass: 'code', mime: 'application/x-ruby'},
+   'r':     {fileClass: 'code', mime: 'text/plain'},
+   'rkt':   {fileClass: 'code', mime: 'text/plain'},
+   'rs':    {fileClass: 'code', mime: 'text/plain'},
+   'sca':   {fileClass: 'code', mime: 'text/plain'},
+   'sh':    {fileClass: 'code', mime: 'text/x-script.sh'},
+   'swift': {fileClass: 'code', mime: 'text/plain'},
+   'tex':   {fileClass: 'code', mime: 'application/x-tex'},
+   'vb':    {fileClass: 'code', mime: 'text/plain'},
+
+   'bz':    {fileClass: 'archive', mime: 'application/x-bzip'},
+   'bz2':   {fileClass: 'archive', mime: 'application/x-bzip2'},
+   'gz':    {fileClass: 'archive', mime: 'application/x-gzip'},
+   'gzip':  {fileClass: 'archive', mime: 'application/x-gzip'},
+   'rar':   {fileClass: 'archive', mime: 'application/x-rar-compressed'},
+   'tar':   {fileClass: 'archive', mime: 'application/x-tar'},
+   'tar.gz':{fileClass: 'archive', mime: 'application/x-gzip'},
+   'tar.bz':{fileClass: 'archive', mime: 'application/x-bzip'},
+   'zip':   {fileClass: 'archive', mime: 'application/x-zip'},
+   '7z':    {fileClass: 'archive', mime: 'application/x-7z-compressed'},
 };
 
 filebrowser.filetypes.renderHTML = function(file) {
@@ -96,7 +139,7 @@ filebrowser.filetypes.getFileClass = function(file) {
       return 'directory';
    }
 
-   var ext = filebrowser.util.ext(file.name);
+   var ext = file.ext || filebrowser.util.ext(file.name);
    if (filebrowser.filetypes.extensions[ext]) {
       return filebrowser.filetypes.extensions[ext].fileClass;
    }

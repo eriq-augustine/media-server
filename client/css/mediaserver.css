@@ -46,6 +46,7 @@
 
 .encode-list-element {
    cursor: pointer;
+   margin-bottom: 10px;
 }
 
 .encode-list-element span {

@@ -34,7 +34,7 @@ filebrowser.nav.changeTarget = function(path, count) {
       $.each(listing.children, function(index, child) {
          files.push(child);
       });
-      filebrowser.view.reloadTable(files, path);
+      filebrowser.view.loadBrowserContent(files, path);
    } else {
       filebrowser.view.loadViewer(listing, path);
    }
@@ -67,7 +67,7 @@ filebrowser.nav._updateCurrentTarget = function(path, listing) {
    filebrowser.view.loadBreadcrumbs(filebrowser.nav._buildBreadcrumbs(path));
 
    // Update any context actions.
-   filebrowser.view.loadContextActions(listing);
+   filebrowser.view.loadContextActions(listing, path);
 }
 
 filebrowser.nav._buildBreadcrumbs = function(path) {

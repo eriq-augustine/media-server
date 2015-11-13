@@ -3,7 +3,17 @@
 var filebrowser = filebrowser || {};
 filebrowser.view = filebrowser.view || {};
 
-filebrowser.view_arrayToTableRow = function(data, isHeader) {
+filebrowser.view._BROWSER_MODE_LISTING = 'listing';
+filebrowser.view._BROWSER_MODE_ICON_VIEW = 'icon';
+
+filebrowser.view._viewModes = {
+   listing: {renderFunction: _loadTableView, icon: 'list', tooltip: 'List View'},
+   icon: {renderFunction: _loadIconView, icon: 'th', tooltip: 'Icon View'},
+};
+
+filebrowser.view._browserMode = 'listing';
+
+filebrowser.view._arrayToTableRow = function(data, isHeader) {
    isHeader = isHeader | false;
    var cellType = isHeader ? 'th' : 'td';
 
@@ -11,25 +21,61 @@ filebrowser.view_arrayToTableRow = function(data, isHeader) {
 
    data.forEach(function(dataObject) {
       var td = document.createElement(cellType);
-      td.appendChild(document.createTextNode(dataObject));
+
+      if (typeof dataObject === 'object' && dataObject instanceof HTMLElement) {
+         td.appendChild(dataObject);
+      } else {
+         td.appendChild(document.createTextNode(dataObject));
+      }
+
       tr.appendChild(td);
    });
 
    return tr;
 }
 
-filebrowser.view_fileToTableRow = function(file) {
-   var typeName = filebrowser.filetypes.getFileClass(file) || 'unknown';
-   var data = [file.name, filebrowser.util.formatDate(file.modDate), typeName, filebrowser.util.bytesToHuman(file.size)];
-   return filebrowser.view_arrayToTableRow(data, false);
+filebrowser.view._getFileIcon = function(listing) {
+   var icon = 'file-o';
+   if (listing.isDir) {
+      icon = 'folder-o'
+   } else {
+      var classInfo = filebrowser.filetypes.fileClasses[filebrowser.filetypes.getFileClass(listing)];
+      classInfo = classInfo || filebrowser.filetypes.fileClasses['general'];
+
+      var icon = classInfo.icon || 'file-o';
+   }
+
+   return icon;
 }
 
-filebrowser.view_filesToTable = function(path, files) {
+filebrowser.view._generateFileLabel = function(listing) {
+   var icon = filebrowser.view._getFileIcon(listing);
+   var iconElement = document.createElement('i');
+   iconElement.className = 'fa fa-fw fa-' + icon;
+
+   var labelElement = document.createElement('span');
+   labelElement.appendChild(document.createTextNode(listing.name));
+
+   var labelContainer = document.createElement('span');
+   labelContainer.className = 'filebrowser-label-container';
+   labelContainer.appendChild(iconElement);
+   labelContainer.appendChild(labelElement);
+
+   return labelContainer;
+}
+
+filebrowser.view_fileToTableRow = function(file) {
+   var typeName = filebrowser.filetypes.getFileClass(file) || 'unknown';
+   var data = [filebrowser.view._generateFileLabel(file), filebrowser.util.formatDate(file.modDate), typeName, filebrowser.util.bytesToHuman(file.size)];
+   return filebrowser.view._arrayToTableRow(data, false);
+}
+
+filebrowser.view._filesToTable = function(path, files) {
    var table = document.createElement('table');
 
    var tableHead = document.createElement('thead');
    var headerData = ['Name', 'Date', 'Type', 'Size'];
-   tableHead.appendChild(filebrowser.view_arrayToTableRow(headerData, true));
+   tableHead.appendChild(filebrowser.view._arrayToTableRow(headerData, true));
    table.appendChild(tableHead);
 
    var tableBody = document.createElement('tbody');
@@ -50,7 +96,6 @@ filebrowser.view.clearContent = function() {
 }
 
 filebrowser.view.loadViewer = function(file, path) {
-   // TODO(eriq): Re-architect the html some, it's not just a table.
    filebrowser.view.clearContent();
 
    var renderInfo = filebrowser.filetypes.renderHTML(file);
@@ -62,12 +107,52 @@ filebrowser.view.loadViewer = function(file, path) {
    }
 }
 
-filebrowser.view.reloadTable = function(files, path) {
-   var table = filebrowser.view_filesToTable(path, files);
+filebrowser.view.changeView = function(viewMode, listing, files, path) {
+   if (viewMode == filebrowser.view._browserMode) {
+      return;
+   }
+
+   filebrowser.view._browserMode = viewMode;
+   filebrowser.view.loadBrowserContent(files, path);
+   filebrowser.view.loadContextActions(listing, path);
+}
+
+filebrowser.view.loadBrowserContent = function(files, path) {
+   if (!filebrowser.view._viewModes.hasOwnProperty(filebrowser.view._browserMode)) {
+      // TODO(eriq): More logging.
+      console.log('Error: unknown browser mode: ' + filebrowser.view._browserMode + ', falling back to listing');
+      filebrowser.view._browserMode = 'listing';
+   }
+
+   filebrowser.view._viewModes[filebrowser.view._browserMode].renderFunction(files, path);
+}
+
+filebrowser.view._loadIconView = _loadIconView;
+function _loadIconView(files, path) {
+   var iconBoard = document.createElement('div');
+   iconBoard.className = 'filebrowser-icon-board';
+
+   files.sort(function(a, b) {return a.name.localeCompare(b.name);}).forEach(function(file) {
+      var url = filebrowser.util.joinURL(path, file.name);
+
+      var listingElement = document.createElement('div');
+      listingElement.className = 'filebrowser-icon-listing';
+      listingElement.appendChild(filebrowser.view._generateFileLabel(file));
+      listingElement.addEventListener('click', filebrowser.nav.changeTarget.bind(window, url));
+
+      iconBoard.appendChild(listingElement);
+   });
+
+   filebrowser.view.clearContent();
+   $(filebrowser.bodyContentQuery).append(iconBoard);
+}
+
+filebrowser.view._loadTableView = _loadTableView;
+function _loadTableView(files, path) {
+   var table = filebrowser.view._filesToTable(path, files);
    table.id = filebrowser.tableId;
    table.className = 'tablesorter';
 
-   // TODO(eriq): Better ids
    filebrowser.view.clearContent();
    $(filebrowser.bodyContentQuery).append(table);
 
@@ -110,8 +195,9 @@ filebrowser.view.loadBreadcrumbs = function(breadcrumbs) {
    $(filebrowser.breadcrumbQuery).append(breadcrumbsElement);
 }
 
-filebrowser.view.loadContextActions = function(listing) {
+filebrowser.view.loadContextActions = function(listing, path) {
    $(filebrowser.contextActionsQuery).empty();
+
    if (!listing.isDir) {
       // Files gets a direct download link.
       var downloadLink = document.createElement('a');
@@ -125,5 +211,33 @@ filebrowser.view.loadContextActions = function(listing) {
 
       downloadLink.appendChild(downloadIcon);
       $(filebrowser.contextActionsQuery).append(downloadLink);
+   } else {
+      // Dirs get to choose between icon and list view.
+      // Rebuild the file set.
+      var files = [];
+      $.each(listing.children, function(index, child) {
+         files.push(child);
+      });
+
+      for (var viewMode in filebrowser.view._viewModes) {
+         if (!filebrowser.view._viewModes.hasOwnProperty(viewMode)) {
+            continue;
+         }
+
+         // Don't show an option for the current mode.
+         if (viewMode == filebrowser.view._browserMode) {
+            continue;
+         }
+
+         var viewInfo = filebrowser.view._viewModes[viewMode];
+
+         var switchView = document.createElement('i');
+         switchView.className = 'fa fa-' + viewInfo.icon;
+         switchView.setAttribute('data-toggle', 'tooltip');
+         switchView.setAttribute('title', viewInfo.tooltip);
+         switchView.addEventListener('click', filebrowser.view.changeView.bind(window, viewMode, listing, files, path));
+
+         $(filebrowser.contextActionsQuery).append(switchView);
+      }
    }
 }
