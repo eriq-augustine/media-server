@@ -2,8 +2,12 @@ package cache;
 
 // Code for requesting encodes, keeping track of the progress, and recently encoded files.
 
+// TODO(eriq): We need to parse the encode directory to get the exiting encodes.
+//  We need this information so that we can properly manage the cache size and history.
+
 import (
    "sync"
+   "time"
 
    "com/eriq-augustine/mediaserver/model"
 )
@@ -25,7 +29,7 @@ type EncodeManager struct {
    Queue []model.EncodeRequest
    InProgress *model.EncodeRequest
    Progress *model.EncodeProgress
-   Complete []model.EncodeRequest
+   Complete []model.CompleteEncode
    ProgressChan chan model.EncodeProgress
    NextEncodeChan chan model.EncodeRequest
 }
@@ -48,7 +52,7 @@ func init() {
    manager.Queue = make([]model.EncodeRequest, 0);
    manager.InProgress = nil;
    manager.Progress = nil;
-   manager.Complete = make([]model.EncodeRequest, 0);
+   manager.Complete = make([]model.CompleteEncode, 0);
 
    // Set up the threads.
    go encoderThread(manager.NextEncodeChan, manager.ProgressChan);
@@ -95,7 +99,7 @@ func (manager *EncodeManager) QueueRequest(request model.EncodeRequest) {
 
 func (manager *EncodeManager) encodeComplete() {
    // Settle the finished encode.
-   manager.Complete = append(manager.Complete, *manager.InProgress);
+   manager.Complete = append(manager.Complete, model.CompleteEncode{manager.InProgress.File, time.Now()});
    manager.InProgress = nil;
    manager.Progress = nil;
 
@@ -124,7 +128,7 @@ func GetQueue() []model.EncodeRequest {
    return manager.Queue;
 }
 
-func GetRecentEncodes(count int) []model.EncodeRequest {
+func GetRecentEncodes(count int) []model.CompleteEncode {
    if (count <= 0) {
       count = DEFAULT_RECENT_ENCODE_COUNT;
    }
@@ -149,5 +153,5 @@ func queueEncode(file model.File, cacheDir string) {
    }
 
    allEncodeRequests[cacheDir] = true;
-   encodeRequestChan <- model.EncodeRequest{file, cacheDir};
+   encodeRequestChan <- model.EncodeRequest{file, cacheDir, time.Now()};
 }

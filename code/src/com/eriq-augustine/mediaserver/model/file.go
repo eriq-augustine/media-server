@@ -4,19 +4,27 @@ import (
    "os"
    "time"
 
+   "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/util"
 )
 
 type DirEntry struct {
    Name string
    Path string
+   AbstractPath string
    Size int64
    IsDir bool
    ModTime time.Time
 }
 
 func DirEntryFromInfo(fileInfo os.FileInfo, path string) DirEntry {
-   return DirEntry{fileInfo.Name(), path, fileInfo.Size(), fileInfo.IsDir(), fileInfo.ModTime()};
+   abstractPath, err := util.AbstractPath(path, "");
+   if (err != nil) {
+      log.WarnE("Could not get abstract path for (" + path + ")", err);
+      abstractPath = path;
+   }
+
+   return DirEntry{fileInfo.Name(), path, abstractPath, fileInfo.Size(), fileInfo.IsDir(), fileInfo.ModTime()};
 }
 
 type File struct {
