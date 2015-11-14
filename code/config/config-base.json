@@ -12,6 +12,8 @@
 
    "apiVersion": 0,
 
+   "usersFile": "config/users.json",
+
    "ffmpegPath": "/usr/bin/ffmpeg",
    "ffprobePath": "/usr/bin/ffprobe",
    "encodingThreads": 7,

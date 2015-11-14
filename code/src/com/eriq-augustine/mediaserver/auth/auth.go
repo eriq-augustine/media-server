@@ -1,128 +1,171 @@
 package auth;
 
+// We use fairly simple security.
+// Auth the user and give them a token that does not expire.
+// However the token is stored in memory, so a server restart invalidates it.
+
 import (
+   "bytes"
    "crypto/rand"
-   "encoding/hex"
+   "encoding/base64"
+   "encoding/binary"
+   "encoding/json"
    "fmt"
+   "io/ioutil"
+   "sync"
    "time"
 
-   jwt "github.com/dgrijalva/jwt-go"
+   "golang.org/x/crypto/bcrypt"
 
-   "com/eriq-augustine/mediaserver/database"
+   "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
+   "com/eriq-augustine/mediaserver/model"
+   "com/eriq-augustine/mediaserver/util"
    "com/eriq-augustine/mediaserver/util/errors"
-);
-
-const (
-   SECRET_LENGTH = 256
-   TOKEN_EXPIRE_TIME_MIN = 30 * 24 * 60 // One month
 )
 
-var jwtSigningMethod jwt.SigningMethod = jwt.SigningMethodHS256;
+const (
+   TOKEN_RANDOM_BYTE_LEN = 16
+)
 
-func genRandomSecret() string {
-   secret := make([]byte, SECRET_LENGTH);
-   _, err := rand.Read(secret);
-   if (err != nil) {
-      log.ErrorE("Unable to generate random secret", err);
-   }
-   return hex.EncodeToString(secret);
+// {username: User}
+var Users map[string]model.User
+// {token: username}
+var Sessions map[string]string;
+
+func init() {
+   Users = make(map[string]model.User);
+   Sessions = make(map[string]string);
 }
 
-// Returns a signed jwt string.
-func AuthenticateUser(username string, passhash string) (int, string, error) {
-   userId, err := database.AuthenticateUser(username, passhash);
-
-   if (err != nil) {
-      return -1, "", err;
+// Returns the token.
+func AuthenticateUser(username string, passhash string) (string, error) {
+   _, exists := Users[username];
+   if (!exists) {
+      return "", errors.TokenValidationError{errors.TOKEN_AUTH_BAD_CREDENTIALS};
    }
 
-   secret := genRandomSecret();
+   err := bcrypt.CompareHashAndPassword([]byte(Users[username].Passhash), []byte(passhash));
+   if (err != nil) {
+      return "", errors.TokenValidationError{errors.TOKEN_AUTH_BAD_CREDENTIALS};
+   }
 
+   token, _:= generateToken();
+   Sessions[token] = username;
+
+   return token, nil;
+}
+
+func RegisterToken(username string, token string) error {
+   return nil;
+}
+
+// Validate the token and get back the token's secret.
+func ValidateToken(token string) (string, error) {
+   username, exists := Sessions[token];
+   if (!exists) {
+      return "", errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN};
+   }
+
+   return username, nil;
+}
+
+// Invalidate the token.
+func InvalidateToken(token string) (bool, error) {
+   _, exists := Sessions[token];
+   if (!exists) {
+      return false, errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN};
+   }
+
+   delete(Sessions, token);
+   return true, nil;
+}
+
+func CreateUser(username string, passhash string) (string, error) {
+   bcryptHash, err := bcrypt.GenerateFromPassword([]byte(passhash), bcrypt.DefaultCost);
+   if (err != nil) {
+      log.ErrorE("Could not generate bcrypt hash", err);
+      return "", err;
+   }
+
+   mutex := &sync.Mutex{}
+   mutex.Lock();
+   defer mutex.Unlock();
+
+   _, exists := Users[username];
+   if (exists) {
+      // TODO(eriq): Return more information.
+      return "", fmt.Errorf("Username (%s) already exists", username);
+   }
+
+   Users[username] = model.User{username, string(bcryptHash), ""};
+
+   // TEST
+   fmt.Println(string(bcryptHash));
+
+   token, _:= generateToken();
+   Sessions[token] = username;
+
+   saveUsers();
+
+   return token, nil;
+}
+
+func saveUsers() {
+   usersFile := config.GetString("usersFile");
+
+   fileUsers := make([]model.User, 0);
+   for _, user := range(Users) {
+      fileUsers = append(fileUsers, user);
+   }
+
+   jsonString, err := util.ToJSONPretty(fileUsers);
+   if (err != nil) {
+      log.ErrorE("Unable to marshal users", err);
+      return;
+   }
+
+   err = ioutil.WriteFile(usersFile, []byte(jsonString), 0644);
+   if (err != nil) {
+      log.ErrorE("Unable to save users", err);
+   }
+}
+
+func LoadUsers() {
+   usersFile := config.GetString("usersFile");
+
+   data, err := ioutil.ReadFile(usersFile);
+   if (err != nil) {
+      log.ErrorE("Unable to read users file", err);
+      return;
+   }
+
+   var fileUsers []model.User;
+   err = json.Unmarshal(data, &fileUsers);
+   if (err != nil) {
+      log.ErrorE("Unable to unmarshal users", err);
+      return;
+   }
+
+   for _, user := range(fileUsers) {
+      Users[user.Username] = user;
+   }
+}
+
+// Generate a "unique" token.
+// Return the base64 encoding of the token as well as the time it was created.
+// The token is a base64 encoding of <date (micro unix epoch), user id, rand>.
+// The date takes 8 bytes (uint64) and the random section is TOKEN_RANDOM_BYTE_LEN bytes.
+func generateToken() (string, time.Time) {
    now := time.Now();
-   expireTime := now.Add(time.Duration(time.Minute) * TOKEN_EXPIRE_TIME_MIN);
 
-   token := jwt.New(jwtSigningMethod)
-   token.Claims["userId"] = userId;
-   token.Claims["username"] = username;
-   token.Claims["tokenCreateTime"] = now.Unix();
-   // Token expire time.
-   token.Claims["exp"] = expireTime.Unix();
-   tokenString, err := token.SignedString([]byte(secret));
+   randData := make([]byte, TOKEN_RANDOM_BYTE_LEN);
+   rand.Read(randData);
 
-   if (err != nil) {
-      log.ErrorE("Unable to sign token", err);
-      return -1, "", err;
-   }
+   timeBinary := make([]byte, 8);
+   binary.LittleEndian.PutUint64(timeBinary, uint64(now.UnixNano() / 1000));
 
-   err = database.RegisterToken(userId, secret, tokenString, now, expireTime);
+   tokenData := bytes.Join([][]byte{timeBinary, randData}, []byte{});
 
-   if (err != nil) {
-      log.ErrorE("Unable to register token", err);
-      return -1, "", err;
-   }
-
-   return userId, tokenString, nil;
-}
-
-// Return the user id associated with this token on success.
-func ValidateToken(tokenString string) (int, error) {
-   // The key function will not return our errors back, so we will stach it.
-   var tokenError error = nil;
-   var userId int = -1;
-
-   // The callback is supposed to return the token's secret.
-   // We will validate the token from the database prespective at the same time.
-   token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-      // First validate the signing algorithm.
-      if (token.Method.Alg() != jwtSigningMethod.Alg()) {
-         return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"]);
-      }
-
-      userIdFloat, ok := token.Claims["userId"].(float64);
-      if (!ok) {
-         // Token has been tampered with.
-         tokenError = errors.TokenValidationError{errors.TOKEN_VALIDATION_BAD_SIGNATURE};
-         return nil, tokenError;
-      }
-
-      userId = int(userIdFloat);
-      secret, err := database.ValidateToken(tokenString, userId);
-      if (err != nil) {
-         tokenError, _ = err.(errors.TokenValidationError);
-         return nil, err;
-      }
-
-      return []byte(secret), nil;
-   });
-
-   if (err != nil) {
-      // First check to see if there was a token specific error,
-      // then just return the default error.
-      if (tokenError != nil) {
-         return -1, tokenError;
-      }
-      return -1, err;
-   }
-
-   // Check for expired tokens
-   expFloat, ok := token.Claims["exp"].(float64);
-   if (!ok) {
-      // Token has been tampered with.
-      return -1, errors.TokenValidationError{errors.TOKEN_VALIDATION_BAD_SIGNATURE};
-   }
-
-   if (time.Unix(int64(expFloat), 0).Before(time.Now())) {
-      return -1, errors.TokenValidationError{errors.TOKEN_VALIDATION_EXPIRED};
-   }
-
-   if (!token.Valid) {
-      return -1, errors.TokenValidationError{errors.TOKEN_VALIDATION_BAD_SIGNATURE};
-   }
-
-   return userId, nil;
-}
-
-func InvalidateToken(tokenString string) (bool, error) {
-   return database.InvalidateToken(tokenString);
+   return base64.URLEncoding.EncodeToString(tokenData), now;
 }

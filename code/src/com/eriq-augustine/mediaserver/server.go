@@ -8,6 +8,7 @@ import (
    ws "golang.org/x/net/websocket"
 
    "com/eriq-augustine/mediaserver/api"
+   "com/eriq-augustine/mediaserver/auth"
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/websocket"
@@ -44,6 +45,9 @@ func main() {
    config.LoadFile(DEFAULT_BASE_CONFIG_PATH);
    config.LoadFile(DEFAULT_BASE_CONFIG_DEPLOY);
    config.LoadFile(DEFAULT_FILETYPES_CONFIG_PATH);
+
+   // It is safe to load users after the configs have been loaded.
+   auth.LoadUsers();
 
    router := api.CreateRouter("/" + config.GetString("clientBaseURL") + "/");
 

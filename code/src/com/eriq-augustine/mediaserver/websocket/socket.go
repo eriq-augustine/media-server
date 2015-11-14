@@ -52,6 +52,7 @@ func SocketHandler(socket *ws.Conn) {
       }
    }(id);
 
+   // TODO(eriq): Require init with token before adding the connection to the pool.
    var rawMsg []byte = make([]byte, MESSAGE_SIZE);
    for {
       size, err := socket.Read(rawMsg);

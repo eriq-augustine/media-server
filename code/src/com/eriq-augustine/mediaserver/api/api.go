@@ -11,7 +11,7 @@ import (
 
 // We need to define these as types, so we can figure it out when we want to pass params.
 type Token string;
-type UserId int;
+type UserName string;
 
 const (
    PARAM_FILE = "file"
@@ -20,7 +20,6 @@ const (
    PARAM_PATH = "path"
    PARAM_TOKEN = "token"
    PARAM_USERNAME = "username"
-   PARAM_USER_ID = "userId"
 )
 
 func CreateRouter(rootRedirect string) *mux.Router {
@@ -54,15 +53,7 @@ func CreateRouter(rootRedirect string) *mux.Router {
       {
          "browse/path",
          browsePath,
-         false, // TODO(eriq): Auth
-         []ApiMethodParam{
-            {PARAM_PATH, API_PARAM_TYPE_STRING, false},
-         },
-      },
-      {
-         "serve/path",
-         servePath,
-         false, // TODO(eriq): Auth
+         true,
          []ApiMethodParam{
             {PARAM_PATH, API_PARAM_TYPE_STRING, false},
          },

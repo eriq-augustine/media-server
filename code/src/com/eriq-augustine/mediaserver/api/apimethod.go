@@ -24,13 +24,13 @@ package api;
  * Because refection in Go does not allow you to find the parameter's name, we must rely on order.
  * In addition to explicitly defined parameters, your handler can have up to four implicit parameters.
  * These parameters may appear in ANY order and you may pick and choose the ones you want (or none).
- *  - userId api.UserId - The id of the user making the request (required authentication).
+ *  - userName api.UserName - The id of the user making the request (required authentication).
  *  - token api.Token - The token of the user making the request (required authentication).
  *  - request *http.Request - The http request.
  *  - response http.ResponseWriter - The http response (you should only use this in extreme cases).
  * Remember that in Go, we cannot get parameter names.
  * So you may call these parameters whatever you want, they are made unique by their types.
- * request and response are obvious, but userId and token are a little more unusual.
+ * request and response are obvious, but userName and token are a little more unusual.
  * These two are typed to be an int and string respectively, and are only typed special to uniquely identify them.
  * The rest of the codebase expects int and string for their types.
  *
@@ -128,7 +128,7 @@ func (method ApiMethod) Validate() {
          if (!method.Auth) {
             log.Panic(fmt.Sprintf("API handler (%s) requested a token without authentication", method.Path));
          }
-      } else if (paramType.String() == "api.UserId") {
+      } else if (paramType.String() == "api.UserName") {
          additionalParams++;
 
          if (!method.Auth) {
@@ -191,19 +191,19 @@ func (method ApiMethod) Middleware() func(response http.ResponseWriter, request 
 // This handles the API side of the request.
 // None of the boilerplate.
 func (method ApiMethod) HandleAPIRequest(response http.ResponseWriter, request *http.Request) (interface{}, int, error) {
-   var userId int = -1;
+   var userName string = "";
    var ok bool;
    var token string = "";
 
    if (method.Auth) {
       var responseObject interface{};
-      ok, userId, token, responseObject = authRequest(request);
+      ok, userName, token, responseObject = authRequest(request);
       if (!ok) {
          return responseObject, http.StatusUnauthorized, nil;
       }
    }
 
-   ok, args := createArguments(method, UserId(userId), Token(token), response, request);
+   ok, args := createArguments(method, UserName(userName), Token(token), response, request);
    if (!ok) {
       return messages.NewGeneralStatus(false, http.StatusBadRequest), http.StatusBadRequest, nil;
    }
@@ -242,7 +242,7 @@ func createReturnValues(method ApiMethod, returns []reflect.Value) (interface{},
 }
 
 // Get all the parameters setup for invocation.
-func createArguments(method ApiMethod, userId UserId, token Token, response http.ResponseWriter, request *http.Request) (bool, []reflect.Value) {
+func createArguments(method ApiMethod, userName UserName, token Token, response http.ResponseWriter, request *http.Request) (bool, []reflect.Value) {
    var handlerType reflect.Type = reflect.TypeOf(method.Handler);
    var numParams int = handlerType.NumIn();
 
@@ -255,8 +255,8 @@ func createArguments(method ApiMethod, userId UserId, token Token, response http
       // The user id, token, request, and response get handled specially.
       if (method.Auth && paramType.String() == "api.Token") {
          paramValues[i] = reflect.ValueOf(token);
-      } else if (method.Auth && paramType.String() == "api.UserId") {
-         paramValues[i] = reflect.ValueOf(userId);
+      } else if (method.Auth && paramType.String() == "api.UserName") {
+         paramValues[i] = reflect.ValueOf(userName);
       } else if (paramType.String() == "*http.Request") {
          paramValues[i] = reflect.ValueOf(request);
       } else if (paramType.String() == "http.ResponseWriter") {
@@ -343,32 +343,32 @@ func sendResponse(jsonResponse string, err error, httpStatus int, response http.
 }
 
 // Tries to authorize a request.
-// Returns: success, user id, request token, and response object.
+// Returns: success, username, request token, and response object.
 // user id and token will only be populated on success.
 // response object will only be populated on error.
-func authRequest(request *http.Request) (bool, int, string, interface{}) {
+func authRequest(request *http.Request) (bool, string, string, interface{}) {
    token, ok := getToken(request);
 
    if (!ok) {
-      return false, 0, "", messages.NewRejectedToken(errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN});
+      return false, "", "", messages.NewRejectedToken(errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN});
    }
 
    // Check for empty tokens.
    if (strings.TrimSpace(token) == "") {
-      return false, 0, "", messages.NewRejectedToken(errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN});
+      return false, "", "", messages.NewRejectedToken(errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN});
    }
 
-   userId, err := auth.ValidateToken(token);
+   userName, err := auth.ValidateToken(token);
    if (err != nil) {
       validationErr, ok := err.(errors.TokenValidationError);
       if (!ok) {
          // Some other (non-validation) error.
-         return false, 0, "", messages.NewGeneralStatus(false, http.StatusInternalServerError);
+         return false, "", "", messages.NewGeneralStatus(false, http.StatusInternalServerError);
       }
-      return false, 0, "", messages.NewRejectedToken(validationErr);
+      return false, "", "", messages.NewRejectedToken(validationErr);
    }
 
-   return true, userId, token, nil;
+   return true, userName, token, nil;
 }
 
 func notFound() (interface{}, int) {

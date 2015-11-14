@@ -24,8 +24,7 @@ func invalidateToken(token Token) (interface{}, error) {
 }
 
 func requestToken(username string, passhash string) (interface{}, int, error) {
-   // userId, token, err := auth.AuthenticateUser(username, passhash);
-   _, token, err := auth.AuthenticateUser(username, passhash);
+   token, err := auth.AuthenticateUser(username, passhash);
    if (err != nil) {
       validationErr, ok := err.(errors.TokenValidationError);
       if (!ok) {
@@ -39,7 +38,11 @@ func requestToken(username string, passhash string) (interface{}, int, error) {
    }
 }
 
-/*
-func createAccount(passhash string, stringProfile string) (interface{}, int, error) {
+func createUser(username string, passhash string) (interface{}, error) {
+   token, err := auth.CreateUser(username, passhash);
+   if (err != nil) {
+      return "", err;
+   }
+
+   return messages.NewAuthorizedToken(token), nil;
 }
-*/

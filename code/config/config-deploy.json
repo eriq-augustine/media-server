@@ -1,5 +1,7 @@
 {
-   "port": 80,
+   "port": 1234,
+
+   "usersFile": "config/users.json",
 
    "staticBaseDir": "/media/nas",
    "cacheBaseDir": "/media/temp/cache",
