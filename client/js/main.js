@@ -172,7 +172,7 @@ mediaserver._renderVideo = function(file) {
    if (!file.extraInfo.cacheReady) {
       return `
          <p>This file needs to be encoded before it can be viewed in-browser.</p>
-         <p>After the file is encoded, reload this path.</p>
+         <p>After the file is encoded, reload this page.</p>
       `;
    }
 

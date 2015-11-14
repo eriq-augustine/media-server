@@ -35,6 +35,12 @@
    box-shadow: 0 0 5px 4px rgba(0,0,0,0.25);
 }
 
+.filebrowser-body-content p {
+   color: #DDE3F3;
+   font-size: 20px;
+   text-align: center;
+}
+
 .filebrowser-breadcrumbs {
    display: flex;
    flex-direction: row;
