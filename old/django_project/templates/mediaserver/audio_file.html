@@ -1,8 +1,0 @@
-{% extends "mediaserver/base_file.html" %}
-
-{% block file-content %}
-   <audio controls>
-      <source src='{% url 'raw' path %}' type='{{ mime }}'>
-      Browser not supported.
-   </audio>
-{% endblock %}
