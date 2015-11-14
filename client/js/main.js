@@ -2,8 +2,8 @@
 
 var mediaserver = mediaserver || {};
 
-mediaserver.socketPath = 'ws://localhost:1234/ws'
-mediaserver.apiPath = 'http://localhost:1234/api/v00/browse/path';
+mediaserver.apiPath = '/api/v00/browse/path';
+mediaserver.socketPath = 'ws://' + window.location.host + '/ws';
 mediaserver.encodeCacheRefreshSec = 10;
 
 // Convert a backend DirEntry to a frontend DirEnt.
