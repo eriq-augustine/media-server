@@ -6,6 +6,9 @@ mediaserver.apiPath = '/api/v00/browse/path';
 mediaserver.socketPath = 'ws://' + window.location.host + '/ws';
 mediaserver.encodeCacheRefreshSec = 10;
 
+// TODO(eriq): Get a real token.
+mediaserver.apiToken = 'faketoken';
+
 // Convert a backend DirEntry to a frontend DirEnt.
 mediaserver._convertBackendDirEntry = function(dirEntry) {
    if (dirEntry.IsDir) {
@@ -19,14 +22,14 @@ mediaserver._convertBackendDirEntry = function(dirEntry) {
 // Files have more information that just dirents.
 mediaserver._convertBackendFile = function(file, data) {
    var extraInfo = {
-      rawLink: file.RawLink,
+      rawLink: mediaserver.util.addTokenParam(file.RawLink),
       cacheReady: data.CacheReady,
-      cacheLink: file.CacheLink,
-      poster: file.Poster,
-      subtitles: file.Subtitles || []
+      cacheLink: mediaserver.util.addTokenParam(file.CacheLink),
+      poster: mediaserver.util.addTokenParam(file.Poster),
+      subtitles: file.Subtitles.map(mediaserver.util.addTokenParam) || []
    };
 
-   return new filebrowser.File(file.DirEntry.Name, new Date(file.DirEntry.ModTime), file.DirEntry.Size, file.RawLink, extraInfo);
+   return new filebrowser.File(file.DirEntry.Name, new Date(file.DirEntry.ModTime), file.DirEntry.Size, mediaserver.util.addTokenParam(file.RawLink), extraInfo);
 }
 
 mediaserver._fetch = function(path, callback) {
@@ -39,6 +42,7 @@ mediaserver._fetch = function(path, callback) {
 
    $.ajax(url, {
       dataType: 'json',
+      headers: {'Authorization': mediaserver.apiToken},
       error: function(request, textStatus, error) {
          // TODO(eriq): log?
          console.log("Error getting data");
