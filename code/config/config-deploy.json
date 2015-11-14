@@ -1,0 +1,10 @@
+{
+   "port": 80,
+
+   "staticBaseDir": "/media/nas",
+   "cacheBaseDir": "/media/temp/cache",
+
+   "ffmpegPath": "/usr/bin/ffmpeg",
+   "ffprobePath": "/usr/bin/ffprobe",
+   "encodingThreads": 7
+}

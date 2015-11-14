@@ -2,7 +2,6 @@ package main;
 
 import (
    "encoding/hex"
-   "flag"
    "fmt"
    "net/http"
 
@@ -15,11 +14,9 @@ import (
 );
 
 const (
-   DEFAULT_CONFIG_PATH = "config/config.json"
+   DEFAULT_BASE_CONFIG_PATH = "config/config-base.json"
+   DEFAULT_BASE_CONFIG_DEPLOY = "config/config-deploy.json"
    DEFAULT_FILETYPES_CONFIG_PATH = "config/filetypes.json"
-   DEFAULT_DEV_CONFIG_PATH = "config/config-dev.json"
-   DEFAULT_PROD_CONFIG_PATH = "config/config-prod.json"
-   DEFAULT_SECRETS_PATH = "config/secrets.json"
 );
 
 func serveFavicon(response http.ResponseWriter, request *http.Request) {
@@ -44,19 +41,9 @@ func redirectToClient(response http.ResponseWriter, request *http.Request) {
 }
 
 func main() {
-   var prod *bool = flag.Bool("prod", false, "Run in production mode");
-   flag.Parse();
-
-   config.LoadFile(DEFAULT_CONFIG_PATH);
+   config.LoadFile(DEFAULT_BASE_CONFIG_PATH);
+   config.LoadFile(DEFAULT_BASE_CONFIG_DEPLOY);
    config.LoadFile(DEFAULT_FILETYPES_CONFIG_PATH);
-   config.LoadFile(DEFAULT_SECRETS_PATH);
-
-   if (*prod) {
-      config.LoadFile(DEFAULT_PROD_CONFIG_PATH);
-   } else {
-      log.SetDebug(true);
-      config.LoadFile(DEFAULT_DEV_CONFIG_PATH);
-   }
 
    router := api.CreateRouter("/" + config.GetString("clientBaseURL") + "/");
 
