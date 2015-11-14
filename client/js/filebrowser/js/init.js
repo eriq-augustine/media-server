@@ -16,7 +16,14 @@ filebrowser.initFields._containerTemplate = `
    </div>
 `
 
-// Valid options: {cacheValidator: func(cacheListing), renderOverrides: {fileClass: func(file)}}
+/*
+   options: {
+      cacheValidator: func(cacheListing),
+      renderOverrides: {
+         fileClass: func(file)
+      }
+   }
+*/
 filebrowser.init = function(containerId, fetchFunction, options) {
    options = options || {};
 
