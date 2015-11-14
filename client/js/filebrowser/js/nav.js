@@ -56,7 +56,7 @@ filebrowser.nav._updateCurrentTarget = function(path, listing) {
 
    // Change the hash if necessary.
    if (path != filebrowser.nav.cleanHashPath()) {
-      window.location.hash = encodeURIComponent(path);
+      window.location.hash = filebrowser.nav.encodeForHash(path);
    }
 
    // TODO(eriq): Whether or not to change the title (and hash) should be an option.
@@ -85,6 +85,16 @@ filebrowser.nav._buildBreadcrumbs = function(path) {
    });
 
    return breadcrumbs;
+}
+
+// Encode a path for use in a hash.
+// We could just do a full encodeURIComponent(), but we can handle leaving
+// slashes and spaces alone. This increases readability of the URL.
+filebrowser.nav.encodeForHash = function(path) {
+   var encodePath = encodeURIComponent(path);
+
+   // Unreplace the slash (%2F) and space (%20).
+   return encodePath.replace(/%2F/g, '/').replace(/%20/g, ' ');
 }
 
 // Remove the leading hash and decode the path
