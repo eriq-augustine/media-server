@@ -36,6 +36,9 @@ var Sessions map[string]string;
 func init() {
    Users = make(map[string]model.User);
    Sessions = make(map[string]string);
+
+   // TEST: load a fake session until the client it ready.
+   Sessions["faketoken"] = "test";
 }
 
 // Returns the token.
@@ -99,9 +102,6 @@ func CreateUser(username string, passhash string) (string, error) {
    }
 
    Users[username] = model.User{username, string(bcryptHash), ""};
-
-   // TEST
-   fmt.Println(string(bcryptHash));
 
    token, _:= generateToken();
    Sessions[token] = username;
