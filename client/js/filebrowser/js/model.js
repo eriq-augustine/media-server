@@ -29,7 +29,7 @@ filebrowser.File = function(name, modDate, size, directLink, extraInfo) {
    this.directLink = directLink;
    this.extraInfo = extraInfo;
 
-   if (name.includes('.')) {
+   if (name.indexOf('.') > -1) {
       var nameParts = name.match(/^(.*)\.([^\.]*)$/);
       this.basename = nameParts[1];
       this.extension = nameParts[2];
