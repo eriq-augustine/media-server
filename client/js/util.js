@@ -5,7 +5,7 @@ mediaserver.util = mediaserver.util || {};
 
 mediaserver.util.hashPass = function(pass, username) {
   var salted = mediaserver.util.saltPass(pass, username);
-  var hash = CryptoJS.SHA3(salted, {outputLength: 512}).toString(CryptoJS.enc.Hex);
+  var hash = CryptoJS.SHA512(salted).toString(CryptoJS.enc.Hex);
   return hash;
 }
 

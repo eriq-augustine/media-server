@@ -39,6 +39,16 @@ mediaserver._fetch = function(path, callback) {
       dataType: 'json',
       headers: {'Authorization': mediaserver.apiToken},
       error: function(request, textStatus, error) {
+         // Permission denied.
+         if (request.status == 401) {
+            alert('Need to login again.');
+            // TODO(eriq): function
+            mediaserver.apiToken = undefined;
+            mediaserver.store.unset(mediaserver.store.TOKEN_KEY);
+            mediaserver._setupLogin();
+            return;
+         }
+
          // TODO(eriq): log?
          console.log("Error getting data");
          console.log(request);

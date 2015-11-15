@@ -117,7 +117,6 @@ mediaserver.login = function() {
    });
 }
 
-
 $(document).ready(function() {
    if (mediaserver.store.has(mediaserver.store.TOKEN_KEY)) {
       mediaserver.apiToken = mediaserver.store.get(mediaserver.store.TOKEN_KEY);
