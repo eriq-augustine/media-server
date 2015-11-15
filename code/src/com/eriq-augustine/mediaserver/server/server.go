@@ -1,4 +1,4 @@
-package main;
+package server;
 
 import (
    "encoding/hex"
@@ -77,14 +77,8 @@ func BasicFileServer(urlPrefix string, baseDir string) http.Handler {
    return http.StripPrefix(urlPrefix, http.FileServer(http.Dir(baseDir)));
 }
 
-func main() {
-   config.LoadFile(DEFAULT_BASE_CONFIG_PATH);
-   config.LoadFile(DEFAULT_BASE_CONFIG_DEPLOY);
-   config.LoadFile(DEFAULT_FILETYPES_CONFIG_PATH);
-
-   // It is safe to load users after the configs have been loaded.
-   auth.LoadUsers();
-
+// Note that this will block until the server crashes.
+func StartServer() {
    rawPrefix := "/" + config.GetString("rawBaseURL") + "/";
    cachePrefix := "/" + config.GetString("cacheBaseURL") + "/";
    clientPrefix := "/" + config.GetString("clientBaseURL") + "/";
@@ -112,4 +106,10 @@ func main() {
    if err != nil {
       panic("ListenAndServe: " + err.Error());
    }
+}
+
+func LoadConfig() {
+   config.LoadFile(DEFAULT_BASE_CONFIG_PATH);
+   config.LoadFile(DEFAULT_BASE_CONFIG_DEPLOY);
+   config.LoadFile(DEFAULT_FILETYPES_CONFIG_PATH);
 }

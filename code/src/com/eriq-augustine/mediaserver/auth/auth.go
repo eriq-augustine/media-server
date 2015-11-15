@@ -36,9 +36,6 @@ var Sessions map[string]string;
 func init() {
    Users = make(map[string]model.User);
    Sessions = make(map[string]string);
-
-   // TEST: load a fake session until the client it ready.
-   Sessions["faketoken"] = "test";
 }
 
 // Returns the token.
@@ -101,21 +98,23 @@ func CreateUser(username string, passhash string) (string, error) {
       return "", fmt.Errorf("Username (%s) already exists", username);
    }
 
-   Users[username] = model.User{username, string(bcryptHash), ""};
+   Users[username] = model.User{username, string(bcryptHash), false};
 
    token, _:= generateToken();
    Sessions[token] = username;
 
-   saveUsers();
+   SaveUsers();
 
    return token, nil;
 }
 
-func saveUsers() {
-   usersFile := config.GetString("usersFile");
+func SaveUsers() {
+   SaveUsersFile(config.GetString("usersFile"), Users);
+}
 
+func SaveUsersFile(usersFile string, usersMap map[string]model.User) {
    fileUsers := make([]model.User, 0);
-   for _, user := range(Users) {
+   for _, user := range(usersMap) {
       fileUsers = append(fileUsers, user);
    }
 
@@ -132,24 +131,30 @@ func saveUsers() {
 }
 
 func LoadUsers() {
-   usersFile := config.GetString("usersFile");
+   Users = LoadUsersFromFile(config.GetString("usersFile"));
+}
+
+func LoadUsersFromFile(usersFile string) map[string]model.User {
+   usersMap := make(map[string]model.User);
 
    data, err := ioutil.ReadFile(usersFile);
    if (err != nil) {
       log.ErrorE("Unable to read users file", err);
-      return;
+      return usersMap;
    }
 
    var fileUsers []model.User;
    err = json.Unmarshal(data, &fileUsers);
    if (err != nil) {
       log.ErrorE("Unable to unmarshal users", err);
-      return;
+      return usersMap;
    }
 
    for _, user := range(fileUsers) {
-      Users[user.Username] = user;
+      usersMap[user.Username] = user;
    }
+
+   return usersMap;
 }
 
 // Generate a "unique" token.

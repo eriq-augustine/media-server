@@ -1,4 +1,4 @@
-media-server
+mediaserver
 ============
 
 A web frontend to a media server.
@@ -20,3 +20,11 @@ If you are binding to a low port (like 80 or 443), then you may want to use some
 ```
 setcap 'cap_net_bind_service=+ep' /path/to/mediaserver
 ```
+
+# User Management
+
+Users are managed through a json configuration file ("usersFile" in the configuration file).
+Password hashes are stored in this file, so you should never share it.
+
+There is currently no way to manage users online, but you can use the supplied manage-users utility to manage them.
+Invoking the utility with no arguments will give you the usage.
