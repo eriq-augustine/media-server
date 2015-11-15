@@ -39,17 +39,15 @@ func CreateRouter(rootRedirect string) *mux.Router {
          true,
          []ApiMethodParam{},
       },
-      /*
       {
          "auth/user/create",
-         createAccount,
+         createUser,
          false,
          []ApiMethodParam{
+            {PARAM_USERNAME, API_PARAM_TYPE_STRING, true},
             {PARAM_PASSHASH, API_PARAM_TYPE_STRING, true},
-            {PARAM_PROFILE, API_PARAM_TYPE_STRING, true},
          },
       },
-      */
       {
          "browse/path",
          browsePath,

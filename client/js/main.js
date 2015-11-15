@@ -8,9 +8,6 @@ mediaserver.apiLoginPath = mediaserver.apiPath + '/auth/token/request';
 mediaserver.apiCreateUserPath = mediaserver.apiPath + '/auth/user/create';
 
 mediaserver.socketPath = 'ws://' + window.location.host + '/ws';
-
-// TODO(eriq): Get a real token.
-// mediaserver.apiToken = 'faketoken';
 mediaserver.apiToken = undefined;
 
 mediaserver._contentTemplate = `
