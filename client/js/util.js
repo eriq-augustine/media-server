@@ -21,5 +21,6 @@ mediaserver.util.addTokenParam = function(link) {
    var params = {
       "token": mediaserver.apiToken
    };
+
    return link + '?' + $.param(params);
 }

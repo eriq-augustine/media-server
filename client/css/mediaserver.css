@@ -65,3 +65,35 @@
    font-weight: bold;
    margin-bottom: 10px;
 }
+
+/* Login Page */
+.login-area {
+   width: 300px;
+   margin-top: 50px;
+   margin-left: auto;
+   margin-right: auto;
+   background-color: #292f40;
+   text-align: center;
+   padding: 30px;
+   border-radius: 5px;
+   box-shadow: 0 0 5px 4px rgba(0,0,0,0.25);
+}
+
+.login-area h2 {
+   color: #DDE3F3;
+   font-size: 32px;
+   margin-bottom: 10px;
+}
+
+.login-area input {
+   display: block;
+   margin-left: auto;
+   margin-right: auto;
+   margin-bottom: 10px;
+   width: 60%;
+}
+
+.login-area button {
+   font-size: 20px;
+   font-family: "Lucida Console", Monaco, monospace;
+}

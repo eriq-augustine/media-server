@@ -2,241 +2,51 @@
 
 var mediaserver = mediaserver || {};
 
-mediaserver.apiPath = '/api/v00/browse/path';
+mediaserver.apiPath = '/api/v00';
+mediaserver.apiBrowserPath = mediaserver.apiPath + '/browse/path';
+mediaserver.apiLoginPath = mediaserver.apiPath + '/auth/token/request';
+mediaserver.apiCreateUserPath = mediaserver.apiPath + '/auth/user/create';
+
 mediaserver.socketPath = 'ws://' + window.location.host + '/ws';
-mediaserver.encodeCacheRefreshSec = 10;
 
 // TODO(eriq): Get a real token.
-mediaserver.apiToken = 'faketoken';
+// mediaserver.apiToken = 'faketoken';
+mediaserver.apiToken = undefined;
 
-// Convert a backend DirEntry to a frontend DirEnt.
-mediaserver._convertBackendDirEntry = function(dirEntry) {
-   if (dirEntry.IsDir) {
-      return new filebrowser.Dir(dirEntry.Name, new Date(dirEntry.ModTime));
-   } else {
-      return new filebrowser.File(dirEntry.Name, new Date(dirEntry.ModTime), dirEntry.Size);
-   }
-}
+mediaserver._contentTemplate = `
+   <div id='mediaserver-filebrowser' class='filebrowser-container'>
+   </div>
+   <div class='encode-activity-container'>
+      <div class='encode-activity-section current-encode-section'>
+         <p>Currently Encoding</p>
+         <div class='encode-list-container current-encode'>
+         </div>
+      </div>
+      <div class='encode-activity-section queue-section'>
+         <p>Encode Queue</p>
+         <div class='encode-list-container queue'>
+         </div>
+      </div>
+      <div class='encode-activity-section recent-encodes-section'>
+         <p>Recent Encodes</p>
+         <div class='encode-list-container recent-encodes'>
+         </div>
+      </div>
+   </div>
+`
 
-// Convert a backend File to a frontend DirEnt.
-// Files have more information that just dirents.
-mediaserver._convertBackendFile = function(file, data) {
-   var extraInfo = {
-      rawLink: mediaserver.util.addTokenParam(file.RawLink),
-      cacheReady: data.CacheReady,
-      cacheLink: mediaserver.util.addTokenParam(file.CacheLink),
-      poster: mediaserver.util.addTokenParam(file.Poster),
-      subtitles: file.Subtitles.map(mediaserver.util.addTokenParam) || []
-   };
+mediaserver._loginTemplate = `
+   <div class='login-area'>
+      <h2>Login</h2>
+      <input type='text' name='username' placeholder='username' autofocus>
+      <input type='password' name='password' placeholder='password'>
+      <button onclick='mediaserver.login()'>Login</button>
+   </div>
+`
 
-   return new filebrowser.File(file.DirEntry.Name, new Date(file.DirEntry.ModTime), file.DirEntry.Size, mediaserver.util.addTokenParam(file.RawLink), extraInfo);
-}
+mediaserver._init = function() {
+   $('.content').empty().append(mediaserver._contentTemplate);
 
-mediaserver._fetch = function(path, callback) {
-   path = path || '/';
-
-   var params = {
-      "path": path
-   };
-   var url = mediaserver.apiPath + '?' + $.param(params);
-
-   $.ajax(url, {
-      dataType: 'json',
-      headers: {'Authorization': mediaserver.apiToken},
-      error: function(request, textStatus, error) {
-         // TODO(eriq): log?
-         console.log("Error getting data");
-         console.log(request);
-         console.log(textStatus);
-      },
-      success: function(data) {
-         if (!data.Success) {
-            // TODO(eriq): more
-            console.log("Unable to get listing");
-            console.log(data);
-            return;
-         }
-
-         var rtnData;
-         if (data.IsDir) {
-            rtnData = [];
-            data.DirEntries.forEach(function(dirEntry) {
-               rtnData.push(mediaserver._convertBackendDirEntry(dirEntry));
-            });
-         } else {
-            rtnData = mediaserver._convertBackendFile(data.File, data);
-         }
-
-         callback(data.IsDir, rtnData);
-      }
-   });
-}
-
-mediaserver.videoTemplate = `
-   <video
-      id='main-video-player'
-      class='video-player video-js vjs-default-skin vjs-big-play-centered'
-   >
-      <source src='{{VIDEO_LINK}}' type='{{MIME_TYPE}}'>
-
-      {{SUB_TRACKS}}
-      Browser not supported.
-   </video>
-`;
-
-mediaserver.renderEncodeActivity = function(encodeActivity) {
-   // If there is no activity, just the encode activity area.
-   if (!encodeActivity.Progress && encodeActivity.Queue.length == 0 && encodeActivity.RecentEncodes.length == 0) {
-      $('.encode-activity-container .current-encode').empty();
-      $('.encode-activity-container .queue').empty();
-      $('.encode-activity-container .recent-encodes').empty();
-      $('.encode-activity-container').hide();
-      return;
-   }
-
-   var encoding = document.createElement('div');
-   encoding.className = 'encoding';
-   if (encodeActivity.Progress) {
-      var encodeActivityElement = mediaserver._renderEncodeActivityItem(encodeActivity.Progress.File);
-
-      var progressBar = document.createElement('progress');
-      progressBar.setAttribute('max', encodeActivity.Progress.TotalMS);
-      progressBar.setAttribute('value', encodeActivity.Progress.CompleteMS);
-      encodeActivityElement.appendChild(progressBar);
-
-      encoding.appendChild(encodeActivityElement);
-   } else {
-     var nothingEncoding = document.createElement('span');
-      nothingEncoding.className = 'encode-list-element-placebolder';
-      nothingEncoding.textContent = 'Nothing Encoding';
-      encoding.appendChild(nothingEncoding);
-   }
-
-   var queue = document.createElement('div');
-   queue.className = 'queue';
-   if (encodeActivity.Queue.length > 0) {
-      encodeActivity.Queue.forEach(function(queueItem) {
-         queue.appendChild(mediaserver._renderEncodeActivityItem(queueItem.File));
-      });
-   } else {
-      var nothingQueued = document.createElement('span');
-      nothingQueued.className = 'encode-list-element-placebolder';
-      nothingQueued.textContent = 'Nothing Queued';
-      queue.appendChild(nothingQueued);
-   }
-
-   var recentlyEncoded = document.createElement('div');
-   recentlyEncoded.className = 'recently-encoded';
-   if (encodeActivity.RecentEncodes.length > 0) {
-      encodeActivity.RecentEncodes.forEach(function(recentEncode) {
-         recentlyEncoded.appendChild(mediaserver._renderEncodeActivityItem(recentEncode.File));
-      });
-   } else {
-      var nothingRecent = document.createElement('span');
-      nothingRecent.className = 'encode-list-element-placebolder';
-      nothingRecent.textContent = 'No Recent Encodes';
-      recentlyEncoded.appendChild(nothingRecent);
-   }
-
-   $('.encode-activity-container .current-encode').empty().append(encoding);
-   $('.encode-activity-container .queue').empty().append(queue);
-   $('.encode-activity-container .recent-encodes').empty().append(recentlyEncoded);
-   $('.encode-activity-container').show();
-}
-
-mediaserver._renderEncodeActivityItem = function(file) {
-   var encodeActivityItem = document.createElement('div');
-   encodeActivityItem.className = 'encode-list-element';
-   encodeActivityItem.addEventListener('click', filebrowser.nav.changeTarget.bind(window, '/' + file.DirEntry.AbstractPath));
-
-   var fileName = document.createElement('span');
-   fileName.textContent = file.DirEntry.Name;
-
-   encodeActivityItem.appendChild(fileName);
-   return encodeActivityItem;
-}
-
-mediaserver.videoTemplate = `
-   <video
-      id='main-video-player'
-      class='video-player video-js vjs-default-skin vjs-big-play-centered'
-   >
-      <source src='{{VIDEO_LINK}}' type='{{MIME_TYPE}}'>
-
-      {{SUB_TRACKS}}
-      Browser not supported.
-   </video>
-`;
-
-mediaserver.subtitleTrackTemplate = `
-   <track kind="subtitles" src="{{SUB_LINK}}" srclang="{{SUB_LANG}}" label="{{SUB_LABEL}}"></track>
-`;
-
-mediaserver._renderVideo = function(file) {
-   if (!file.extraInfo.cacheReady) {
-      return `
-         <p>This file needs to be encoded before it can be viewed in-browser.</p>
-         <p>After the file is encoded, reload this page.</p>
-      `;
-   }
-
-   var subTracks = [];
-   file.extraInfo.subtitles.forEach(function(sub) {
-      var match = sub.match(/sub_(\w+)_(\d+).vtt$/)
-      if (!match) {
-         return;
-      }
-
-      var track = mediaserver.subtitleTrackTemplate;
-      track = track.replace('{{SUB_LINK}}', sub);
-      track = track.replace('{{SUB_LANG}}', match[1]);
-      track = track.replace('{{SUB_LABEL}}', match[1] + '_' + match[2]);
-
-      subTracks.push(track);
-   });
-
-   var ext = filebrowser.util.ext(file.extraInfo.cacheLink || file.directLink);
-   var mime = '';
-   if (filebrowser.filetypes.extensions[ext]) {
-      mime = filebrowser.filetypes.extensions[ext].mime;
-   }
-
-   var videoHTML = mediaserver.videoTemplate;
-
-   videoHTML = videoHTML.replace('{{VIDEO_LINK}}', file.extraInfo.cacheLink || file.directLink);
-   videoHTML = videoHTML.replace('{{MIME_TYPE}}', mime);
-   videoHTML = videoHTML.replace('{{SUB_TRACKS}}', subTracks.join());
-
-   return {html: videoHTML, callback: mediaserver._initVideo.bind(this, file)};
-}
-
-mediaserver._initVideo = function(file) {
-   if (videojs.getPlayers()['main-video-player']) {
-      videojs.getPlayers()['main-video-player'].dispose();
-   }
-
-   videojs('main-video-player', {
-      controls: true,
-      preload: 'auto',
-      poster: file.extraInfo.poster || ''
-   });
-}
-
-// Look for files that have not encoded yet.
-mediaserver._validateCacheEntry = function(cacheListing) {
-   if (cacheListing.isDir) {
-      return true;
-   }
-
-   if (cacheListing.extraInfo.cacheReady) {
-      return true;
-   }
-
-   // If the cache is not ready, give a few seconds between hitting again.
-   return ((Date.now() - cacheListing.cacheTime) < (mediaserver.encodeCacheRefreshSec * 1000))
-}
-
-$(document).ready(function() {
    // Init the websocket.
    mediaserver.socket.init(mediaserver.socketPath);
 
@@ -257,4 +67,68 @@ $(document).ready(function() {
    }
 
    filebrowser.nav.changeTarget(target);
+}
+
+mediaserver._setupLogin = function() {
+   $('.content').empty().append(mediaserver._loginTemplate);
+}
+
+mediaserver.login = function() {
+   var username = $('.login-area input[name=username]').val();
+   var password = $('.login-area input[name=password]').val();
+
+   if (!username || !password) {
+      alert('Need both username and password.');
+      return;
+   }
+
+   var passhash = mediaserver.util.hashPass(password, username);
+
+   var params = {
+      "username": username,
+      "passhash": passhash
+   };
+   var url = mediaserver.apiLoginPath + '?' + $.param(params);
+
+   $.ajax(url, {
+      dataType: 'json',
+      error: function(request, textStatus, error) {
+         // Permission denied.
+         if (request.status == 403) {
+            alert('Bad username/password combination.');
+            return;
+         }
+
+         // TODO(eriq): log?
+         console.log("Error getting login");
+         console.log(request);
+         console.log(textStatus);
+         alert('Some server error occured.');
+      },
+      success: function(data) {
+         if (!data.Success) {
+            // TODO(eriq): more
+            console.log("Unable to get token");
+            console.log(data);
+            return;
+         }
+
+         mediaserver.apiToken = data.Token;
+         mediaserver.store.set(mediaserver.store.TOKEN_KEY, mediaserver.apiToken);
+         mediaserver._init();
+      }
+   });
+}
+
+
+$(document).ready(function() {
+   if (mediaserver.store.has(mediaserver.store.TOKEN_KEY)) {
+      mediaserver.apiToken = mediaserver.store.get(mediaserver.store.TOKEN_KEY);
+   }
+
+   if (mediaserver.apiToken) {
+      mediaserver._init();
+   } else {
+      mediaserver._setupLogin();
+   }
 });
