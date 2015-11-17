@@ -1,6 +1,7 @@
 package model;
 
 import (
+   "path/filepath"
    "os"
    "time"
 
@@ -12,6 +13,7 @@ type DirEntry struct {
    Name string
    Path string
    AbstractPath string
+   RawLink *string
    Size int64
    IsDir bool
    ModTime time.Time
@@ -24,7 +26,18 @@ func DirEntryFromInfo(fileInfo os.FileInfo, path string) DirEntry {
       abstractPath = path;
    }
 
-   return DirEntry{fileInfo.Name(), path, abstractPath, fileInfo.Size(), fileInfo.IsDir(), fileInfo.ModTime()};
+   // Files get to show their raw link.
+   var rawLinkPtr *string = nil;
+   if (!fileInfo.IsDir()) {
+      rawLink, err := util.RawLink(filepath.JOin(path, fileInfo.Name()));
+      if (err != nil) {
+         log.WarnE("Could not get raw link for (" + path + ")", err);
+      } else {
+         rawLinkPtr = &rawLink;
+      }
+   }
+
+   return DirEntry{fileInfo.Name(), path, abstractPath, rawLinkPtr, fileInfo.Size(), fileInfo.IsDir(), fileInfo.ModTime()};
 }
 
 type File struct {

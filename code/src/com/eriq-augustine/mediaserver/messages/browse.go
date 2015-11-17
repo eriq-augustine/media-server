@@ -4,6 +4,9 @@ import (
    "com/eriq-augustine/mediaserver/model"
 )
 
+// TODO(eriq): Some messages give away too much data.
+// Need to lock down real paths and only send abstract paths and links.
+
 type ListDir struct {
    Success bool
    IsDir bool
