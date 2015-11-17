@@ -8,6 +8,7 @@ import (
 
    ws "golang.org/x/net/websocket"
 
+   "com/eriq-augustine/mediaserver/auth"
    "com/eriq-augustine/mediaserver/cache"
    "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/messages"
@@ -39,7 +40,6 @@ func init() {
 func SocketHandler(socket *ws.Conn) {
    var id = nextConnectionId;
    nextConnectionId++;
-   connections[id] = &WebSocketInfo{socket, ""};
 
    // The client's encoding information will get initialized in the next update cycle.
 
@@ -52,7 +52,6 @@ func SocketHandler(socket *ws.Conn) {
       }
    }(id);
 
-   // TODO(eriq): Require init with token before adding the connection to the pool.
    var rawMsg []byte = make([]byte, MESSAGE_SIZE);
    for {
       size, err := socket.Read(rawMsg);
@@ -74,7 +73,36 @@ func SocketHandler(socket *ws.Conn) {
          continue;
       }
 
-      // Right now, we are not actually expecting any new messages.
+      _, exists := msg["Type"];
+      if (!exists) {
+         log.Error("Socket message does not have a type");
+         continue;
+      }
+
+      stringType, ok := msg["Type"].(string);
+      if (!ok) {
+         log.Error("Socket message type is not a string");
+         continue;
+      }
+
+      if (stringType == messages.SOCKET_MESSAGE_TYPE_INIT) {
+         var initMsg messages.SocketInit;
+         err = json.Unmarshal(rawMsg[0:size], &initMsg);
+         if (err != nil) {
+            log.ErrorE("Unable to unmarshal socket init", err);
+            continue;
+         }
+
+         // Validate the token and add the connection to the pool.
+         _, err = auth.ValidateToken(initMsg.Token);
+         if (err == nil) {
+            // Don't worry about double adding.
+            connections[id] = &WebSocketInfo{socket, ""};
+         }
+      } else {
+         log.Error("Unknown socket message type: " + stringType);
+         continue;
+      }
    }
 }
 
