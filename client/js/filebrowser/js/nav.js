@@ -34,7 +34,7 @@ filebrowser.nav.changeTarget = function(path, count) {
       $.each(listing.children, function(index, child) {
          files.push(child);
       });
-      filebrowser.view.loadBrowserContent(files, path);
+      filebrowser.view.loadBrowserContent(listing, files, path);
    } else {
       filebrowser.view.loadViewer(listing, path);
    }

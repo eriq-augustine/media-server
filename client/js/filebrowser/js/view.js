@@ -9,6 +9,7 @@ filebrowser.view._BROWSER_MODE_ICON_VIEW = 'icon';
 filebrowser.view._viewModes = {
    listing: {renderFunction: _loadTableView, icon: 'list', tooltip: 'List View'},
    icon: {renderFunction: _loadIconView, icon: 'th', tooltip: 'Icon View'},
+   gallery: {renderFunction: _loadGalleryView, icon: 'picture-o', tooltip: 'Gallery View'},
 };
 
 filebrowser.view._browserMode = 'listing';
@@ -113,22 +114,64 @@ filebrowser.view.changeView = function(viewMode, listing, files, path) {
    }
 
    filebrowser.view._browserMode = viewMode;
-   filebrowser.view.loadBrowserContent(files, path);
+   filebrowser.view.loadBrowserContent(listing, files, path);
    filebrowser.view.loadContextActions(listing, path);
 }
 
-filebrowser.view.loadBrowserContent = function(files, path) {
+filebrowser.view.loadBrowserContent = function(listing, files, path) {
    if (!filebrowser.view._viewModes.hasOwnProperty(filebrowser.view._browserMode)) {
       // TODO(eriq): More logging.
       console.log('Error: unknown browser mode: ' + filebrowser.view._browserMode + ', falling back to listing');
       filebrowser.view._browserMode = 'listing';
    }
 
-   filebrowser.view._viewModes[filebrowser.view._browserMode].renderFunction(files, path);
+   filebrowser.view._viewModes[filebrowser.view._browserMode].renderFunction(listing, files, path);
+}
+
+filebrowser.view._loadGalleryView = _loadGalleryView;
+function _loadGalleryView(listing, files, path) {
+   var gallery = document.createElement('div');
+   gallery.className = 'fotorama';
+   gallery.setAttribute('data-auto', false);
+   gallery.setAttribute('data-keyboard', true);
+   gallery.setAttribute('data-allowfullscreen', 'native');
+   gallery.setAttribute('data-nav', 'thumbs');
+   gallery.setAttribute('data-loop', true);
+   gallery.setAttribute('data-transitionduration', 100);
+   gallery.setAttribute('data-width', '100%');
+
+   // Make sure that there are images here.
+   // If not, bail out to listing view.
+   var hasImage = false;
+
+   files.sort(function(a, b) {return a.name.localeCompare(b.name);}).forEach(function(file) {
+      if (!filebrowser.filetypes.isFileClass(file, 'image')) {
+         return;
+      }
+      hasImage = true;
+
+      var imageLink = document.createElement('a');
+      imageLink.setAttribute('href', file.directLink);
+      imageLink.setAttribute('title', file.name);
+      imageLink.setAttribute('alt', file.name);
+      imageLink.setAttribute('data-caption', file.name);
+
+      gallery.appendChild(imageLink);
+   });
+
+   if (!hasImage) {
+      filebrowser.view.changeView('listing', listing, files, path);
+      return;
+   }
+
+   filebrowser.view.clearContent();
+   $(filebrowser.bodyContentQuery).append(gallery);
+
+   $('.fotorama').fotorama();
 }
 
 filebrowser.view._loadIconView = _loadIconView;
-function _loadIconView(files, path) {
+function _loadIconView(listing, files, path) {
    var iconBoard = document.createElement('div');
    iconBoard.className = 'filebrowser-icon-board';
 
@@ -148,7 +191,7 @@ function _loadIconView(files, path) {
 }
 
 filebrowser.view._loadTableView = _loadTableView;
-function _loadTableView(files, path) {
+function _loadTableView(listing, files, path) {
    var table = filebrowser.view._filesToTable(path, files);
    table.id = filebrowser.tableId;
    table.className = 'tablesorter';
@@ -213,10 +256,16 @@ filebrowser.view.loadContextActions = function(listing, path) {
       $(filebrowser.contextActionsQuery).append(downloadLink);
    } else {
       // Dirs get to choose between icon and list view.
+
       // Rebuild the file set.
+      var hasImage = false;
       var files = [];
       $.each(listing.children, function(index, child) {
          files.push(child);
+
+         if (filebrowser.filetypes.isFileClass(child, 'image')) {
+            hasImage = true;
+         }
       });
 
       for (var viewMode in filebrowser.view._viewModes) {
@@ -226,6 +275,11 @@ filebrowser.view.loadContextActions = function(listing, path) {
 
          // Don't show an option for the current mode.
          if (viewMode == filebrowser.view._browserMode) {
+            continue;
+         }
+
+         // Only show gallery if there is an image present.
+         if (viewMode == 'gallery' && !hasImage) {
             continue;
          }
 

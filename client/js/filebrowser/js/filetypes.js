@@ -94,6 +94,14 @@ filebrowser.filetypes.extensions = filebrowser.filetypes.extensions || {
    '7z':    {fileClass: 'archive', mime: 'application/x-7z-compressed'},
 };
 
+filebrowser.filetypes.isFileClass = function(file, fileClass) {
+   if (!filebrowser.filetypes.extensions[file.extension]) {
+      return false;
+   }
+
+   return filebrowser.filetypes.extensions[file.extension].fileClass === fileClass;
+}
+
 filebrowser.filetypes.renderHTML = function(file) {
    // TODO(eriq): More error
    if (file.isDir) {

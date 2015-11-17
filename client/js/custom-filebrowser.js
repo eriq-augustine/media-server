@@ -9,7 +9,7 @@ mediaserver._convertBackendDirEntry = function(dirEntry) {
    if (dirEntry.IsDir) {
       return new filebrowser.Dir(dirEntry.Name, new Date(dirEntry.ModTime));
    } else {
-      return new filebrowser.File(dirEntry.Name, new Date(dirEntry.ModTime), dirEntry.Size);
+      return new filebrowser.File(dirEntry.Name, new Date(dirEntry.ModTime), dirEntry.Size, mediaserver.util.addTokenParam(dirEntry.RawLink));
    }
 }
 
