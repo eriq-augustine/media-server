@@ -12,17 +12,20 @@ type CacheStatus struct {
 }
 
 func NewCacheStatus(progress *model.EncodeProgress, queue []model.EncodeRequest, recentEncodes []model.CompleteEncode) *CacheStatus {
-   // Clear out any potentially sentitive information.
    if (progress != nil) {
-      // Make a copy so we don't mess with original.
-      var progressCopy model.EncodeProgress = *progress;
-      progressCopy.CacheDir = "";
-      progress = &progressCopy;
+      safeProgress := progress.Safe();
+      progress = &safeProgress;
    }
 
+   safeQueue := make([]model.EncodeRequest, 0, len(queue));
    for _, request := range(queue) {
-      request.CacheDir = "";
+      safeQueue = append(safeQueue, request.Safe());
    }
 
-   return &CacheStatus{true, progress, queue, recentEncodes};
+   safeRecentEncodes := make([]model.CompleteEncode, 0, len(recentEncodes));
+   for _, recentEncode := range(recentEncodes) {
+      safeRecentEncodes = append(safeRecentEncodes, recentEncode.Safe());
+   }
+
+   return &CacheStatus{true, progress, safeQueue, safeRecentEncodes};
 }

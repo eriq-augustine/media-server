@@ -4,9 +4,6 @@ import (
    "com/eriq-augustine/mediaserver/model"
 )
 
-// TODO(eriq): Some messages give away too much data.
-// Need to lock down real paths and only send abstract paths and links.
-
 type ListDir struct {
    Success bool
    IsDir bool
@@ -14,7 +11,12 @@ type ListDir struct {
 }
 
 func NewListDir(dirEntries []model.DirEntry) *ListDir {
-   return &ListDir{true, true, dirEntries};
+   safeDirEntries := make([]model.DirEntry, 0, len(dirEntries));
+   for _, dirEntry := range(dirEntries) {
+      safeDirEntries = append(safeDirEntries, dirEntry.Safe());
+   }
+
+   return &ListDir{true, true, safeDirEntries};
 }
 
 type ViewFile struct {
@@ -25,5 +27,5 @@ type ViewFile struct {
 }
 
 func NewViewFile(file model.File, cacheReady bool) *ViewFile {
-   return &ViewFile{true, false, cacheReady, file};
+   return &ViewFile{true, false, cacheReady, file.Safe()};
 }
