@@ -122,3 +122,25 @@ func GetIntDefault(key string, defaultVal int) int {
 
    return intVal;
 }
+
+func GetBool(key string) bool {
+   val := Get(key);
+
+   boolVal, ok := val.(bool);
+   if (!ok) {
+      log.Panic(fmt.Sprintf("Option (%s) is not a bool type", key));
+   }
+
+   return boolVal;
+}
+
+func GetBoolDefault(key string, defaultVal bool) bool {
+   val := GetDefault(key, defaultVal);
+
+   boolVal, ok := val.(bool);
+   if (!ok) {
+      return defaultVal;
+   }
+
+   return boolVal;
+}
