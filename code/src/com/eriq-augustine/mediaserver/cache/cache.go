@@ -1,5 +1,8 @@
 package cache;
 
+// TODO(eriq): The cache/encode system needs a little re-architecting.
+// The interactions between the two is a little wonky.
+
 import (
    "os"
    "path/filepath"
@@ -11,14 +14,23 @@ import (
    "com/eriq-augustine/mediaserver/util"
 )
 
-var fileRequirementsCache *map[string]CacheRequirements = nil;
+// {extension: requirements}
+var fileRequirementsCache *map[string]CacheRequirements;
+// {cacheDir: cahceEntry}
+var cache map[string]*model.CacheEntry;
 
-// TODO(eriq): Right now, all video encodes will be mp4.
-// We may change this later.
 type CacheRequirements struct {
    VideoEncode bool
    Subtitles bool
    Poster bool
+}
+
+func init() {
+   fileRequirementsCache = nil;
+   cache = make(map[string]*model.CacheEntry);
+
+   // TODO(eriq): Scan cache on first hit.
+   //  We can't make the cache on init, because config won't be ready.
 }
 
 func (requirements CacheRequirements) RequiresCache() bool {
@@ -42,45 +54,97 @@ func NegotiateCache(file model.File) (model.File, bool) {
       return file, true;
    }
 
-   if (ok && requirements.RequiresCache()) {
-      cacheDir := ensureCacheDir(file);
+   cacheEntry := getCacheEntry(file);
 
-      if (requirements.Poster) {
-         posterPath, err := fetchPoster(file, cacheDir);
-         if (err == nil) {
-            posterLink, err := util.CacheLink(posterPath);
-            if (err == nil) {
-               file.Poster = &posterLink;
-            }
-         }
+   if (requirements.Poster) {
+      handlePoster(&file, cacheEntry);
+   }
+
+   if (requirements.Subtitles) {
+      handleSubtitles(&file, cacheEntry);
+   }
+
+   if (requirements.VideoEncode) {
+      cacheReady = cacheReady && handleEncode(&file, cacheEntry);
+   }
+
+   cacheEntry.Save();
+
+   return file, cacheReady;
+}
+
+func handleEncode(file *model.File, cacheEntry *model.CacheEntry) bool {
+   if (cacheEntry.Encode != nil) {
+      cacheLink, err := util.CacheLink(cacheEntry.Encode.EncodePath);
+      if (err == nil) {
+         file.CacheLink = &cacheLink;
       }
 
-      if (requirements.Subtitles) {
-         subs, err := extractSubtitles(file, cacheDir);
-         if (err == nil) {
-            for _, sub := range(subs) {
-               subLink, err := util.CacheLink(sub);
-               if (err == nil) {
-                  file.Subtitles = append(file.Subtitles, subLink);
-               }
-            }
-         }
-      }
+      return true;
+   }
 
-      if (requirements.VideoEncode) {
-         encodePath, encodeComplete := requestEncode(file, cacheDir);
-         if (encodeComplete) {
-            cacheLink, err := util.CacheLink(encodePath);
-            if (err == nil) {
-               file.CacheLink = &cacheLink;
-            }
-         } else {
-            cacheReady = false;
-         }
+   // No cached encode found, request a new one.
+   requestEncode(*file, cacheEntry.Dir);
+
+   return false;
+}
+
+func handleSubtitles(file *model.File, cacheEntry *model.CacheEntry) {
+   subs := cacheEntry.Subtitles;
+
+   if (subs == nil) {
+      subs, err := extractSubtitles(file, cacheEntry.Dir);
+      if (err != nil) {
+         subs = nil;
+      } else {
+         cacheEntry.SetSubtitles(subs);
       }
    }
 
-   return file, cacheReady;
+   if (subs != nil) {
+      for _, sub := range(*subs) {
+         subLink, err := util.CacheLink(sub);
+         if (err == nil) {
+            file.Subtitles = append(file.Subtitles, subLink);
+         }
+      }
+   }
+}
+
+func handlePoster(file *model.File, cacheEntry *model.CacheEntry) {
+   posterPath := cacheEntry.Poster;
+
+   if (posterPath == nil) {
+      posterPath, err := fetchPoster(file, cacheEntry.Dir);
+      if (err != nil) {
+         posterPath = nil;
+      } else {
+         cacheEntry.SetPoster(posterPath);
+      }
+   }
+
+   if (posterPath != nil) {
+      posterLink, err := util.CacheLink(*posterPath);
+      if (err == nil) {
+         file.Poster = &posterLink;
+      }
+   }
+}
+
+// Note that this causes a race condition between the time the entry is fetched and when the cache is served.
+func getCacheEntry(file model.File) *model.CacheEntry {
+   cacheDir := ensureCacheDir(file);
+
+   entry, ok := cache[cacheDir];
+   if (ok) {
+      entry.Hit();
+      return entry;
+   }
+
+   entry = model.NewCacheEntry(cacheDir);
+   cache[cacheDir] = entry;
+
+   return entry;
 }
 
 func ensureCacheDir(file model.File) string {

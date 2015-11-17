@@ -22,7 +22,7 @@ var subtitleExts []string = []string{"srt", "sub", "sbv", "ass", "ssa", "aqt", "
 // Get all the subtitles available for |file|.
 // This can include internal subtitles (if |file| is a container format),
 // adjacent files, and subtitle directories.
-func extractSubtitles(file model.File, cacheDir string) ([]string, error) {
+func extractSubtitles(file *model.File, cacheDir string) (*[]string, error) {
    doneFile := filepath.Join(cacheDir, "subtitles.done");
 
    // Check for the subs before we generate a new one.
@@ -46,13 +46,13 @@ func extractSubtitles(file model.File, cacheDir string) ([]string, error) {
    return fetchCachedSubs(cacheDir), nil;
 }
 
-func fetchCachedSubs(cacheDir string) []string {
+func fetchCachedSubs(cacheDir string) *[]string {
    var subs []string = make([]string, 0);
 
    fileInfos, err := ioutil.ReadDir(cacheDir);
    if (err != nil) {
       log.ErrorE("Unable to read cache dir for subs: " + cacheDir, err);
-      return subs;
+      return &subs;
    }
 
    for _, fileInfo := range(fileInfos) {
@@ -61,11 +61,11 @@ func fetchCachedSubs(cacheDir string) []string {
       }
    }
 
-   return subs;
+   return &subs;
 }
 
 // Search for subtitle files related to |file|.
-func collectRelatedSubFiles(file model.File) []string {
+func collectRelatedSubFiles(file *model.File) []string {
    // Find all the directories to look in (including the current directory).
 
    // Start with the current directory.
@@ -92,7 +92,7 @@ func collectRelatedSubFiles(file model.File) []string {
    return subFiles;
 }
 
-func fetchSubtitlesFromDirectory(file model.File, dir string) []string {
+func fetchSubtitlesFromDirectory(file *model.File, dir string) []string {
    var subs []string = make([]string, 0);
    basename := util.Basename(file.DirEntry.Path);
 

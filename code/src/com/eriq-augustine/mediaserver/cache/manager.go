@@ -98,10 +98,17 @@ func (manager *EncodeManager) QueueRequest(request model.EncodeRequest) {
 }
 
 func (manager *EncodeManager) encodeComplete() {
+   completeEncode := model.CompleteEncode{manager.InProgress.File, time.Now(), getEncodePath(manager.InProgress.CacheDir)};
+   cacheDir := manager.InProgress.CacheDir;
+
    // Settle the finished encode.
-   manager.Complete = append(manager.Complete, model.CompleteEncode{manager.InProgress.File, time.Now()});
+   manager.Complete = append(manager.Complete, completeEncode);
    manager.InProgress = nil;
    manager.Progress = nil;
+
+   // TODO(eriq): This is an unsafe access. We'll get rid of this when we re-architect the cache/manager.
+   cache[cacheDir].SetEncode(&completeEncode);
+   cache[cacheDir].Save();
 
    // Setup the next one.
    manager.startNextEncode();

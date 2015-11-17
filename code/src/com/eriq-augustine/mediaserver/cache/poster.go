@@ -17,12 +17,12 @@ const (
    POSTER_TIME_SEC = "20"
 )
 
-func fetchPoster(file model.File, cacheDir string) (string, error) {
+func fetchPoster(file *model.File, cacheDir string) (*string, error) {
    posterPath := filepath.Join(cacheDir, "poster.png");
 
    // Check for the poster before we generate a new one.
    if (util.PathExists(posterPath)) {
-      return posterPath, nil;
+      return &posterPath, nil;
    }
 
    cmd := exec.Command(
@@ -40,8 +40,8 @@ func fetchPoster(file model.File, cacheDir string) (string, error) {
    err := cmd.Run();
    if (err != nil) {
       log.ErrorE("Unable to generate poster", err);
-      return "", err;
+      return nil, err;
    }
 
-   return posterPath, nil;
+   return &posterPath, nil;
 }
