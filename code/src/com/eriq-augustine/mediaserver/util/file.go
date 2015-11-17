@@ -1,18 +1,38 @@
-// +build !windows
-
 package util;
 
 import (
+   "path/filepath"
    "os"
-   "strings"
+
+   "com/eriq-augustine/mediaserver/log"
 )
 
-// Check if a file is hidden.
-func IsHidden(fileInfo os.FileInfo) bool {
-   // Unix style
-   if (strings.HasPrefix(fileInfo.Name(), ".")) {
-      return true;
+func DirSize(path string) uint64 {
+   var size uint64 = 0;
+
+   err := filepath.Walk(path, func(childPath string, fileInfo os.FileInfo, err error) error {
+      if (err != nil) {
+         return err;
+      }
+
+      // Skip root.
+      if (path == childPath) {
+         return nil;
+      }
+
+      if (fileInfo.IsDir()) {
+         size += DirSize(childPath);
+      } else {
+         size += uint64(fileInfo.Size());
+      }
+
+      return nil;
+   });
+
+   if (err != nil) {
+      log.ErrorE("Error getting the a directory's size (" + path + ")", err);
+      return 0;
    }
 
-   return false;
+   return size;
 }

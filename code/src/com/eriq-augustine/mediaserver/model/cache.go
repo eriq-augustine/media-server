@@ -15,7 +15,7 @@ const (
 
 type CacheEntry struct {
    Dir string
-   SizeBytes uint64
+   Size uint64
    Hits int
    LastHit time.Time
    LastUpdate time.Time
@@ -23,13 +23,14 @@ type CacheEntry struct {
    Poster *string
    Encode *CompleteEncode
 
-   dirty bool
+   dirty bool // If the entry is dirty, it needs to be saved.
+   sizeDirty bool // Whether or not the size needs to be recalculated.
 }
 
 func NewCacheEntry(dir string) *CacheEntry {
    return &CacheEntry {
       Dir: dir,
-      SizeBytes: 0,
+      Size: 0,
       Hits: 1,
       LastHit: time.Now(),
       LastUpdate: time.Now(),
@@ -50,32 +51,42 @@ func (entry *CacheEntry) SetPoster(poster *string) {
    entry.Poster = poster;
    entry.LastUpdate = time.Now();
    entry.dirty = true;
+   entry.sizeDirty = true;
 }
 
 func (entry *CacheEntry) SetSubtitles(subs *[]string) {
    entry.Subtitles = subs;
    entry.LastUpdate = time.Now();
    entry.dirty = true;
+   entry.sizeDirty = true;
 }
 
 func (entry *CacheEntry) SetEncode(encode *CompleteEncode) {
    entry.Encode = encode;
    entry.LastUpdate = time.Now();
    entry.dirty = true;
+   entry.sizeDirty = true;
 }
 
 func (entry *CacheEntry) Save() {
-   if (entry.dirty) {
-      jsonString, err := util.ToJSONPretty(entry);
-      if (err != nil) {
-         log.ErrorE("Unable to marshal cache entry", err);
-         return;
-      }
+   if (!entry.dirty) {
+      return;
+   }
 
-      err = ioutil.WriteFile(filepath.Join(entry.Dir, CACHE_ENTRY_FILE_NAME), []byte(jsonString), 0644);
-      if (err != nil) {
-         log.ErrorE("Unable to save cache entry", err);
-      }
+   if (entry.sizeDirty) {
+      entry.Size = util.DirSize(entry.Dir);
+      entry.sizeDirty = false;
+   }
+
+   jsonString, err := util.ToJSONPretty(entry);
+   if (err != nil) {
+      log.ErrorE("Unable to marshal cache entry", err);
+      return;
+   }
+
+   err = ioutil.WriteFile(filepath.Join(entry.Dir, CACHE_ENTRY_FILE_NAME), []byte(jsonString), 0644);
+   if (err != nil) {
+      log.ErrorE("Unable to save cache entry", err);
    }
 
    entry.dirty = false;
