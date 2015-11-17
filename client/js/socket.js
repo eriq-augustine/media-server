@@ -12,6 +12,8 @@ mediaserver.socket.init = function(path) {
    mediaserver.socket._socket.onerror = mediaserver.socket._onerror;
 }
 
+mediaserver.socket._MESSAGE_TYPE_INIT = 'init';
+
 mediaserver.socket._onmessage = function(ev) {
    if (!ev.data) {
       return;
@@ -27,6 +29,14 @@ mediaserver.socket._onmessage = function(ev) {
 mediaserver.socket._onopen = function(ev) {
    // TODO(eriq): Better logging.
    console.log("Socket Opened");
+
+   // Send the init message.
+   var initMsg = {
+      Type: mediaserver.socket._MESSAGE_TYPE_INIT,
+      Token: mediaserver.apiToken
+   };
+
+   mediaserver.socket._socket.send(JSON.stringify(initMsg));
 }
 
 mediaserver.socket._onclose = function(ev) {
