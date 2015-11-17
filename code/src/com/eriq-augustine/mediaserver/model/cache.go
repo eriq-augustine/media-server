@@ -1,6 +1,7 @@
 package model;
 
 import (
+   "encoding/json"
    "io/ioutil"
    "path/filepath"
    "time"
@@ -39,6 +40,23 @@ func NewCacheEntry(dir string) *CacheEntry {
       Encode: nil,
       dirty: true,
    };
+}
+
+func LoadCacheEntryFromFile(path string) *CacheEntry {
+   data, err := ioutil.ReadFile(path);
+   if (err != nil) {
+      log.ErrorE("Unable to read cache entry", err);
+      return nil;
+   }
+
+   var cacheEntry CacheEntry;
+   err = json.Unmarshal(data, &cacheEntry);
+   if (err != nil) {
+      log.ErrorE("Unable to unmarshal cache entry", err);
+      return nil;
+   }
+
+   return &cacheEntry;
 }
 
 func (entry *CacheEntry) Hit() {

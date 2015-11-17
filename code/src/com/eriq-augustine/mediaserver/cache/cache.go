@@ -27,10 +27,7 @@ type CacheRequirements struct {
 
 func init() {
    fileRequirementsCache = nil;
-   cache = make(map[string]*model.CacheEntry);
-
-   // TODO(eriq): Scan cache on first hit.
-   //  We can't make the cache on init, because config won't be ready.
+   cache = nil;
 }
 
 func (requirements CacheRequirements) RequiresCache() bool {
@@ -131,8 +128,20 @@ func handlePoster(file *model.File, cacheEntry *model.CacheEntry) {
    }
 }
 
+func addEncodeToCache(cacheDir string, encode *model.CompleteEncode) {
+   if (cache != nil) {
+      cache[cacheDir].SetEncode(encode);
+      cache[cacheDir].Save();
+   }
+}
+
 // Note that this causes a race condition between the time the entry is fetched and when the cache is served.
 func getCacheEntry(file model.File) *model.CacheEntry {
+   if (cache == nil) {
+      cache = make(map[string]*model.CacheEntry);
+      scanCache();
+   }
+
    cacheDir := ensureCacheDir(file);
 
    entry, ok := cache[cacheDir];
@@ -145,6 +154,33 @@ func getCacheEntry(file model.File) *model.CacheEntry {
    cache[cacheDir] = entry;
 
    return entry;
+}
+
+// Scan the cache directory for cache entries and load them into memory.
+func scanCache() {
+   cachePath := config.GetString("cacheBaseDir");
+   err := filepath.Walk(cachePath, func(childPath string, fileInfo os.FileInfo, err error) error {
+      if (err != nil) {
+         return err;
+      }
+
+      if (cachePath == childPath) {
+         return nil;
+      }
+
+      if (!fileInfo.IsDir() && fileInfo.Name() == model.CACHE_ENTRY_FILE_NAME) {
+         cacheEntry := model.LoadCacheEntryFromFile(childPath);
+         if (cacheEntry != nil) {
+            cache[cacheEntry.Dir] = cacheEntry;
+         }
+      }
+
+      return nil;
+   });
+
+   if (err != nil) {
+      log.ErrorE("Error scanning cache", err);
+   }
 }
 
 func ensureCacheDir(file model.File) string {

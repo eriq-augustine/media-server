@@ -2,9 +2,6 @@ package cache;
 
 // Code for requesting encodes, keeping track of the progress, and recently encoded files.
 
-// TODO(eriq): We need to parse the encode directory to get the exiting encodes.
-//  We need this information so that we can properly manage the cache size and history.
-
 import (
    "sync"
    "time"
@@ -25,6 +22,7 @@ var manager EncodeManager;
 var allEncodeRequests map[string]bool;
 var requestMutex *sync.Mutex;
 
+// TODO(eriq): The complete encodes should be filled when the cache is scanned (see cache/cache.go).
 type EncodeManager struct {
    Queue []model.EncodeRequest
    InProgress *model.EncodeRequest
@@ -107,8 +105,7 @@ func (manager *EncodeManager) encodeComplete() {
    manager.Progress = nil;
 
    // TODO(eriq): This is an unsafe access. We'll get rid of this when we re-architect the cache/manager.
-   cache[cacheDir].SetEncode(&completeEncode);
-   cache[cacheDir].Save();
+   addEncodeToCache(cacheDir, &completeEncode);
 
    // Setup the next one.
    manager.startNextEncode();
