@@ -6,12 +6,17 @@ package cache;
 import (
    "os"
    "path/filepath"
+   "sort"
    "strings"
 
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/model"
    "com/eriq-augustine/mediaserver/util"
+)
+
+const (
+   BYTES_PER_GIGABYTE = 1024 * 1024 * 1024
 )
 
 // {extension: requirements}
@@ -130,8 +135,12 @@ func handlePoster(file *model.File, cacheEntry *model.CacheEntry) {
 
 func addEncodeToCache(cacheDir string, encode *model.CompleteEncode) {
    if (cache != nil) {
-      cache[cacheDir].SetEncode(encode);
-      cache[cacheDir].Save();
+      _, ok := cache[cacheDir];
+      if (ok) {
+         cache[cacheDir].SetEncode(encode);
+         cache[cacheDir].Save();
+         maintainCacheSize();
+      }
    }
 }
 
@@ -181,6 +190,8 @@ func scanCache() {
    if (err != nil) {
       log.ErrorE("Error scanning cache", err);
    }
+
+   maintainCacheSize();
 }
 
 func ensureCacheDir(file model.File) string {
@@ -193,6 +204,38 @@ func ensureCacheDir(file model.File) string {
    }
 
    return cachePath;
+}
+
+func maintainCacheSize() {
+   var totalSize uint64 = 0;
+
+   var lowerThresholdBytes uint64 = uint64(config.GetInt("cacheLowerThresholdGB") * BYTES_PER_GIGABYTE);
+   var upperThresholdBytes uint64 = uint64(config.GetInt("cacheUpperThresholdGB") * BYTES_PER_GIGABYTE);
+
+   var sortedCache []*model.CacheEntry = make([]*model.CacheEntry, 0, len(cache));
+
+   for _, cacheEntry := range(cache) {
+      totalSize += cacheEntry.Size;
+      sortedCache = append(sortedCache, cacheEntry);
+   }
+
+   if (totalSize < upperThresholdBytes) {
+      return;
+   }
+
+   sort.Sort(model.CacheByScore(sortedCache));
+   for (totalSize > lowerThresholdBytes) {
+      if (len(sortedCache) == 0) {
+         break;
+      }
+
+      cacheEntry := sortedCache[0];
+      sortedCache = sortedCache[1:];
+
+      delete(cache, cacheEntry.Dir);
+      util.RmDir(cacheEntry.Dir);
+      totalSize -= cacheEntry.Size;
+   }
 }
 
 func loadFileRequirements() *map[string]CacheRequirements {

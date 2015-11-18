@@ -7,6 +7,10 @@ import (
    "com/eriq-augustine/mediaserver/log"
 )
 
+func RmDir(path string) {
+   os.RemoveAll(path);
+}
+
 func DirSize(path string) uint64 {
    var size uint64 = 0;
 

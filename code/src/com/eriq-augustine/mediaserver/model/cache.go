@@ -14,6 +14,8 @@ const (
    CACHE_ENTRY_FILE_NAME = "cache.json"
 )
 
+type CacheByScore []*CacheEntry
+
 type CacheEntry struct {
    Dir string
    Size uint64
@@ -26,6 +28,7 @@ type CacheEntry struct {
 
    dirty bool // If the entry is dirty, it needs to be saved.
    sizeDirty bool // Whether or not the size needs to be recalculated.
+   score float64
 }
 
 func NewCacheEntry(dir string) *CacheEntry {
@@ -39,6 +42,7 @@ func NewCacheEntry(dir string) *CacheEntry {
       Poster: nil,
       Encode: nil,
       dirty: true,
+      score: 0,
    };
 }
 
@@ -63,6 +67,7 @@ func (entry *CacheEntry) Hit() {
    entry.Hits++;
    entry.LastHit = time.Now();
    entry.dirty = true;
+   entry.score = 0;
 }
 
 func (entry *CacheEntry) SetPoster(poster *string) {
@@ -70,6 +75,7 @@ func (entry *CacheEntry) SetPoster(poster *string) {
    entry.LastUpdate = time.Now();
    entry.dirty = true;
    entry.sizeDirty = true;
+   entry.score = 0;
 }
 
 func (entry *CacheEntry) SetSubtitles(subs *[]string) {
@@ -77,6 +83,7 @@ func (entry *CacheEntry) SetSubtitles(subs *[]string) {
    entry.LastUpdate = time.Now();
    entry.dirty = true;
    entry.sizeDirty = true;
+   entry.score = 0;
 }
 
 func (entry *CacheEntry) SetEncode(encode *CompleteEncode) {
@@ -84,6 +91,7 @@ func (entry *CacheEntry) SetEncode(encode *CompleteEncode) {
    entry.LastUpdate = time.Now();
    entry.dirty = true;
    entry.sizeDirty = true;
+   entry.score = 0;
 }
 
 func (entry *CacheEntry) Save() {
@@ -108,6 +116,20 @@ func (entry *CacheEntry) Save() {
    }
 
    entry.dirty = false;
+}
+
+// High scores are bad.
+// The higher the socre, the more likely an entry will be replaced.
+func (entry *CacheEntry) Score() float64 {
+   if (entry.score != 0) {
+      return entry.score;
+   }
+
+   dayDiff := uint64(time.Now().Sub(entry.LastHit).Hours() / 24);
+
+   // This is just some made-up scoring formula.
+   entry.score = float64(((dayDiff + 1.0) * entry.Size) / ((uint64(entry.Hits) + 1.0) / 2.0));
+   return entry.score;
 }
 
 type EncodeRequest struct {
@@ -155,4 +177,16 @@ func (complete CompleteEncode) Safe() CompleteEncode {
       CompleteTime: complete.CompleteTime,
       EncodePath: "",
    };
+}
+
+func (entries CacheByScore) Len() int {
+   return len(entries);
+}
+
+func (entries CacheByScore) Swap(i int, j int) {
+   entries[i], entries[j] = entries[j], entries[i];
+}
+
+func (entries CacheByScore) Less(i int, j int) bool {
+   return entries[i].Score() > entries[j].Score()
 }
