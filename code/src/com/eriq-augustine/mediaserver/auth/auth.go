@@ -94,7 +94,6 @@ func CreateUser(username string, passhash string) (string, error) {
 
    _, exists := Users[username];
    if (exists) {
-      // TODO(eriq): Return more information.
       return "", fmt.Errorf("Username (%s) already exists", username);
    }
 

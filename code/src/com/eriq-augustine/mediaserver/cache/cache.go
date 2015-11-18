@@ -1,8 +1,5 @@
 package cache;
 
-// TODO(eriq): The cache/encode system needs a little re-architecting.
-// The interactions between the two is a little wonky.
-
 import (
    "os"
    "path/filepath"
@@ -124,7 +121,6 @@ func handlePoster(file *model.File, cacheEntry *model.CacheEntry) {
          cacheEntry.SetPoster(posterPath);
       }
    }
-
    if (posterPath != nil) {
       posterLink, err := util.CacheLink(*posterPath);
       if (err == nil) {

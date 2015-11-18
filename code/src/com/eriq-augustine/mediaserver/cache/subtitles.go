@@ -39,8 +39,6 @@ func extractSubtitles(file *model.File, cacheDir string) (*[]string, error) {
       numSubtitleFiles = extractSubtitlesFromFile(relatedSubFile, cacheDir, numSubtitleFiles);
    }
 
-   // TODO(eriq): Remove dups
-
    ioutil.WriteFile(doneFile, []byte(""), 0644);
 
    return fetchCachedSubs(cacheDir), nil;

@@ -13,8 +13,6 @@ const (
    DEFAULT_RECENT_ENCODE_COUNT = 20
 )
 
-// TODO(eriq): Consider doing updates with pointers insead since we will be sending many.
-
 var encodeRequestChan chan model.EncodeRequest;
 var manager EncodeManager;
 
@@ -22,7 +20,6 @@ var manager EncodeManager;
 var allEncodeRequests map[string]bool;
 var requestMutex *sync.Mutex;
 
-// TODO(eriq): The complete encodes should be filled when the cache is scanned (see cache/cache.go).
 type EncodeManager struct {
    Queue []model.EncodeRequest
    InProgress *model.EncodeRequest
@@ -104,7 +101,7 @@ func (manager *EncodeManager) encodeComplete() {
    manager.InProgress = nil;
    manager.Progress = nil;
 
-   // TODO(eriq): This is an unsafe access. We'll get rid of this when we re-architect the cache/manager.
+   // Note: This is an unsafe access. We'll get rid of this when we re-architect the cache/manager.
    addEncodeToCache(cacheDir, &completeEncode);
 
    // Setup the next one.
@@ -141,7 +138,6 @@ func GetRecentEncodes(count int) []model.CompleteEncode {
       return manager.Complete;
    }
 
-   // TODO(eriq): This is a little unsafe.
    return manager.Complete[0:count];
 }
 
