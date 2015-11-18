@@ -35,9 +35,11 @@ mediaserver._contentTemplate = `
 mediaserver._loginTemplate = `
    <div class='login-area'>
       <h2>Login</h2>
-      <input type='text' name='username' placeholder='username' autofocus>
-      <input type='password' name='password' placeholder='password'>
-      <button onclick='mediaserver.login()'>Login</button>
+      <form action='javascript:mediaserver.login()'>
+         <input type='text' name='username' placeholder='username' autofocus>
+         <input type='password' name='password' placeholder='password'>
+         <input type='submit' value='Login'>
+      </form>
    </div>
 `
 
