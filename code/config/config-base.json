@@ -1,11 +1,10 @@
 {
    "port": 80,
-   "staticBaseDir": "/media/nas",
-   "cacheBaseDir": "/media/temp/cache",
+   "staticBaseDir": "/srv/mediaserver",
+   "cacheBaseDir": "/srv/cache",
 
    "clientBaseDir": "../client",
 
-   "browseBaseURL": "browse",
    "rawBaseURL": "raw",
    "cacheBaseURL": "cache",
    "clientBaseURL": "client",
