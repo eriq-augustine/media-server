@@ -1,7 +1,7 @@
 package cache;
 
 // Handle fetching "posters" from video files.
-// A poster is an image to use before the video has played.
+// A poster is an image to use before the video has started playing.
 
 import (
    "os/exec"
@@ -10,20 +10,14 @@ import (
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/model"
-   "com/eriq-augustine/mediaserver/util"
 )
 
 const (
    POSTER_TIME_SEC = "20"
 )
 
-func fetchPoster(file *model.File, cacheDir string) (*string, error) {
+func fetchPoster(file *model.File, cacheDir string) (string, error) {
    posterPath := filepath.Join(cacheDir, "poster.png");
-
-   // Check for the poster before we generate a new one.
-   if (util.PathExists(posterPath)) {
-      return &posterPath, nil;
-   }
 
    cmd := exec.Command(
       config.GetString("ffmpegPath"),
@@ -40,8 +34,8 @@ func fetchPoster(file *model.File, cacheDir string) (*string, error) {
    err := cmd.Run();
    if (err != nil) {
       log.ErrorE("Unable to generate poster", err);
-      return nil, err;
+      return "", err;
    }
 
-   return &posterPath, nil;
+   return posterPath, nil;
 }

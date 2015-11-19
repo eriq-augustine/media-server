@@ -15,10 +15,6 @@ import (
    "com/eriq-augustine/mediaserver/util"
 )
 
-const (
-   REQUEST_BUFFER_SIZE = 1024
-)
-
 var japaneseLangCodes []string = []string{"japanese", "jpn", "jp"};
 
 type AudioStreamSort []map[string]string;
@@ -33,18 +29,6 @@ func getEncodeDonePath(cacheDir string) string {
 
 func isEncodeDone(cacheDir string) bool {
    return util.PathExists(getEncodeDonePath(cacheDir)) && util.PathExists(getEncodePath(cacheDir));
-}
-
-// The second returned value indicates if the encode is good.
-func requestEncode(file model.File, cacheDir string) (string, bool) {
-   // Check for the encode before we generate a new one.
-   if (isEncodeDone(cacheDir)) {
-      return getEncodePath(cacheDir), true;
-   }
-
-   queueEncode(file, cacheDir);
-
-   return "", false;
 }
 
 func encodeFileInternal(file model.File, cacheDir string, progressChan chan model.EncodeProgress) error {

@@ -33,6 +33,8 @@ var Users map[string]model.User
 // {token: username}
 var Sessions map[string]string;
 
+var createAccountMutex sync.Mutex;
+
 func init() {
    Users = make(map[string]model.User);
    Sessions = make(map[string]string);
@@ -88,9 +90,8 @@ func CreateUser(username string, passhash string) (string, error) {
       return "", err;
    }
 
-   mutex := &sync.Mutex{}
-   mutex.Lock();
-   defer mutex.Unlock();
+   createAccountMutex.Lock();
+   defer createAccountMutex.Unlock();
 
    _, exists := Users[username];
    if (exists) {

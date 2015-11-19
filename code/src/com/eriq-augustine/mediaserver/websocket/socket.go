@@ -139,5 +139,5 @@ func sendUpdates() {
 }
 
 func getCacheStatus() *messages.CacheStatus {
-   return messages.NewCacheStatus(cache.GetProgress(), cache.GetQueue(), cache.GetRecentEncodes(-1));
+   return messages.NewCacheStatus(cache.GetEncodeStatus());
 }

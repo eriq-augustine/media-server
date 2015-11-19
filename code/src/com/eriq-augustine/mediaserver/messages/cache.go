@@ -11,21 +11,22 @@ type CacheStatus struct {
    RecentEncodes []model.CompleteEncode
 }
 
-func NewCacheStatus(progress *model.EncodeProgress, queue []model.EncodeRequest, recentEncodes []model.CompleteEncode) *CacheStatus {
-   if (progress != nil) {
-      safeProgress := progress.Safe();
-      progress = &safeProgress;
+func NewCacheStatus(encodeStatus model.EncodeStatus) *CacheStatus {
+   var safeProgress *model.EncodeProgress = nil;
+   if (encodeStatus.Progress != nil) {
+      temp := encodeStatus.Progress.Safe();
+      safeProgress = &temp;
    }
 
-   safeQueue := make([]model.EncodeRequest, 0, len(queue));
-   for _, request := range(queue) {
+   safeQueue := make([]model.EncodeRequest, 0, len(encodeStatus.Queue));
+   for _, request := range(encodeStatus.Queue) {
       safeQueue = append(safeQueue, request.Safe());
    }
 
-   safeRecentEncodes := make([]model.CompleteEncode, 0, len(recentEncodes));
-   for _, recentEncode := range(recentEncodes) {
+   safeRecentEncodes := make([]model.CompleteEncode, 0, len(encodeStatus.Complete));
+   for _, recentEncode := range(encodeStatus.Complete) {
       safeRecentEncodes = append(safeRecentEncodes, recentEncode.Safe());
    }
 
-   return &CacheStatus{true, progress, safeQueue, safeRecentEncodes};
+   return &CacheStatus{true, safeProgress, safeQueue, safeRecentEncodes};
 }

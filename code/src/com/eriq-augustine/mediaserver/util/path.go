@@ -23,6 +23,10 @@ func Basename(path string) string {
    return strings.TrimSuffix(filepath.Base(path), ext);
 }
 
+func Ext(path string) string {
+   return strings.TrimPrefix(filepath.Ext(path), ".");
+}
+
 // Tell if a path exists.
 func PathExists(path string) bool {
    _, err := os.Stat(path);
