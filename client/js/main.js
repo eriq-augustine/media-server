@@ -7,7 +7,7 @@ mediaserver.apiBrowserPath = mediaserver.apiPath + '/browse/path';
 mediaserver.apiLoginPath = mediaserver.apiPath + '/auth/token/request';
 mediaserver.apiCreateUserPath = mediaserver.apiPath + '/auth/user/create';
 
-mediaserver.socketPath = 'ws://' + window.location.host + '/ws';
+mediaserver.socketPath = 'wss://' + window.location.host + '/ws';
 mediaserver.apiToken = undefined;
 
 mediaserver._contentTemplate = `

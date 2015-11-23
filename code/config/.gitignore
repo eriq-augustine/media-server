@@ -1,2 +1,6 @@
 secrets.json
 users.json
+domain.cert
+domain.key
+config.json
+config-prod.json

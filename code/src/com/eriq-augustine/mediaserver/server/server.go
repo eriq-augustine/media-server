@@ -2,6 +2,7 @@ package server;
 
 import (
    "encoding/hex"
+   "flag"
    "fmt"
    "net/http"
    "strings"
@@ -19,10 +20,16 @@ import (
 );
 
 const (
-   DEFAULT_BASE_CONFIG_PATH = "config/config-base.json"
-   DEFAULT_BASE_CONFIG_DEPLOY = "config/config-deploy.json"
+   DEFAULT_BASE_CONFIG_PATH = "config/config.json"
    DEFAULT_FILETYPES_CONFIG_PATH = "config/filetypes.json"
-);
+)
+
+// Flags
+var (
+   configPath = flag.String("config", DEFAULT_BASE_CONFIG_PATH, "Path to the configuration file to use")
+   filetypesPath = flag.String("filetypes", DEFAULT_FILETYPES_CONFIG_PATH, "Path to the filetypes configuration")
+   prod = flag.Bool("prod", false, "Use prodution configuration")
+)
 
 func serveFavicon(response http.ResponseWriter, request *http.Request) {
    dataBytes, err := hex.DecodeString(config.GetStringDefault("favicon", ""));
@@ -42,7 +49,11 @@ func serveRobots(response http.ResponseWriter, request *http.Request) {
 }
 
 func redirectToClient(response http.ResponseWriter, request *http.Request) {
-   http.Redirect(response, request, "http://localhost:1234/client/", 200);
+   http.Redirect(response, request, ":1234/client/", http.StatusFound);
+}
+
+func redirectToHttps(response http.ResponseWriter, request *http.Request) {
+   http.Redirect(response, request, fmt.Sprintf("https://%s:%d/%s", request.Host, config.GetInt("httpsPort"), request.RequestURI), http.StatusFound);
 }
 
 func AuthFileServer(urlPrefix string, baseDir string) func(response http.ResponseWriter, request *http.Request) {
@@ -99,17 +110,46 @@ func StartServer() {
 
    http.Handle("/", router);
 
-   port := config.GetIntDefault("port", 1234);
-   log.Info(fmt.Sprintf("Starting media server on port %d", port));
+   if (config.GetBool("useSSL")) {
+      httpsPort := config.GetInt("httpsPort");
 
-   err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil);
-   if err != nil {
-      panic("ListenAndServe: " + err.Error());
+      // Forward http
+      if (config.GetBoolDefault("forwardHttp", false) && config.Has("httpPort")) {
+         httpPort := config.GetInt("httpPort");
+
+	 go func() {
+	    err := http.ListenAndServe(fmt.Sprintf(":%d", httpPort), http.HandlerFunc(redirectToHttps));
+	    if err != nil {
+	       log.PanicE("Failed to redirect http to https", err);
+	    }
+	 }()
+      }
+
+      // Serve https
+      log.Info(fmt.Sprintf("Starting media server on https port %d", httpsPort));
+
+      err := http.ListenAndServeTLS(fmt.Sprintf(":%d", httpsPort), config.GetString("httpsCertFile"), config.GetString("httpsKeyFile"), nil);
+      if err != nil {
+         log.PanicE("Failed to server https", err);
+      }
+   } else {
+      port := config.GetInt("httpPort");
+      log.Info(fmt.Sprintf("Starting media server on http port %d", port));
+
+      err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil);
+      if err != nil {
+         log.PanicE("Failed to server http", err);
+      }
    }
 }
 
 func LoadConfig() {
-   config.LoadFile(DEFAULT_BASE_CONFIG_PATH);
-   config.LoadFile(DEFAULT_BASE_CONFIG_DEPLOY);
-   config.LoadFile(DEFAULT_FILETYPES_CONFIG_PATH);
+   flag.Parse();
+
+   config.LoadFile(*configPath);
+   config.LoadFile(*filetypesPath);
+
+   if (*prod && config.Has("prodConfig")) {
+      config.LoadFile(config.GetString("prodConfig"));
+   }
 }
