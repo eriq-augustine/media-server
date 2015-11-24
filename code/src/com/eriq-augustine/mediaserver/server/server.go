@@ -48,10 +48,6 @@ func serveRobots(response http.ResponseWriter, request *http.Request) {
    fmt.Fprintf(response, "User-agent: *\nDisallow: /\n");
 }
 
-func redirectToClient(response http.ResponseWriter, request *http.Request) {
-   http.Redirect(response, request, ":1234/client/", http.StatusFound);
-}
-
 func redirectToHttps(response http.ResponseWriter, request *http.Request) {
    http.Redirect(response, request, fmt.Sprintf("https://%s:%d/%s", request.Host, config.GetInt("httpsPort"), request.RequestURI), http.StatusFound);
 }
