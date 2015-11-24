@@ -18,6 +18,10 @@ mediaserver.util.addTokenParam = function(link) {
       return link;
    }
 
+   if (!link) {
+      return undefined;
+   }
+
    var params = {
       "token": mediaserver.apiToken
    };
