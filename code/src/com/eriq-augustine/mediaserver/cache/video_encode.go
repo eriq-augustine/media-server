@@ -44,7 +44,7 @@ func encodeFileInternal(file model.File, cacheDir string, progressChan chan mode
    videoStream := getBestVideoStream(streamInfo);
    audioStream := getBestAudioStream(streamInfo);
 
-   encodingThreads := config.GetIntDefault("encodingThreads", 2);
+   encodingThreads := config.GetIntDefault("encodingThreads", 0);
 
    cmd := exec.Command(
       config.GetString("ffmpegPath"),
@@ -53,16 +53,19 @@ func encodeFileInternal(file model.File, cacheDir string, progressChan chan mode
       "-nostats",
       "-loglevel", "warning", // Be pretty quiet.
       "-c:v", "libx264", // Video codex.
-      "-crf", "28", // Constant rate factor.
       "-threads", strconv.Itoa(encodingThreads), // Number of encoding threads to run.
-      "-preset", "veryfast", // Go as fast as we can.
-      "-b:v", util.MapGetWithDefault(streamInfo.Metadata, "bit_rate", "2426222"),
+      "-preset", "superfast", // Go as fast as we can without hurting the quality.
+      "-vf", "scale=-1:720",
+      "-b:v", "1500k", // Experiments show 1500k does well.
+      "-maxrate", "1500k", // Should be the bitrate (-b:v).
+      "-bufsize", "3000k", // Double the bitrate.
       "-map", "0:" + videoStream["index"],
       "-strict", "-2",
       "-c:a", "aac",
       "-map", "0:" + audioStream["index"],
+      "-f", "mp4",
       "-progress", "-", // Send progress to stdout.
-      encodePath, // Output. File format is infered from extension.
+      encodePath, // Output.
    );
 
    stdout, err := cmd.StdoutPipe()
