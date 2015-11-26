@@ -133,7 +133,7 @@ mediaserver.renderEncodeActivity = function(encodeActivity) {
    var recentlyEncoded = document.createElement('div');
    recentlyEncoded.className = 'recently-encoded';
    if (encodeActivity.RecentEncodes.length > 0) {
-      encodeActivity.RecentEncodes.forEach(function(recentEncode) {
+      encodeActivity.RecentEncodes.sort(function(a, b) { return b.CompleteTime.localeCompare(a.CompleteTime); }).forEach(function(recentEncode) {
          recentlyEncoded.appendChild(mediaserver._renderEncodeActivityItem(recentEncode.File));
       });
    } else {
