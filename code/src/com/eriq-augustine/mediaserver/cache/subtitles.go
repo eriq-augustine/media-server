@@ -91,14 +91,16 @@ func fetchSubtitlesFromDirectory(file *model.File, dir string) []string {
 
    // Look for files with the same basename as |file|, but a subtitle extension.
    fileInfos, err := ioutil.ReadDir(dir);
-   if (err == nil) {
-      for _, fileInfo := range(fileInfos) {
-         ext := strings.ToLower(strings.TrimPrefix(fileInfo.Name(), "."));
-         suspectBasename := util.Basename(fileInfo.Name());
+   if (err != nil) {
+      return subs;
+   }
 
-         if (!fileInfo.IsDir() && basename == suspectBasename && util.SliceHasString(subtitleExts, ext)) {
-            subs = append(subs, filepath.Join(dir, fileInfo.Name()));
-         }
+   for _, fileInfo := range(fileInfos) {
+      ext := util.Ext(fileInfo.Name());
+      suspectBasename := util.Basename(fileInfo.Name());
+
+      if (!fileInfo.IsDir() && basename == suspectBasename && util.SliceHasString(subtitleExts, ext)) {
+         subs = append(subs, filepath.Join(dir, fileInfo.Name()));
       }
    }
 
