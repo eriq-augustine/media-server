@@ -55,7 +55,9 @@ func encodeFileInternal(file model.File, cacheDir string, progressChan chan mode
       "-c:v", "libx264", // Video codex.
       "-threads", strconv.Itoa(encodingThreads), // Number of encoding threads to run.
       "-preset", "superfast", // Go as fast as we can without hurting the quality.
-      "-vf", "scale=-1:720",
+      "-vf", "scale=trunc(oh*a/2)*2:720", // Keep the aspect ratio the same, but make the height 720.
+                                            // Note that ffmpeg supportd -1 to do this,
+                                            // but will sometimes cause odd widths (which mp4 does not allow).
       "-b:v", "1500k", // Experiments show 1500k does well.
       "-maxrate", "1500k", // Should be the bitrate (-b:v).
       "-bufsize", "3000k", // Double the bitrate.
@@ -93,6 +95,7 @@ func encodeFileInternal(file model.File, cacheDir string, progressChan chan mode
       // Even though is has the suffix "ms", this is really in microseconds, not milliseconds.
       if (strings.HasPrefix(string(line), "out_time_ms")) {
          currentTimeUS, err := strconv.ParseInt(strings.TrimPrefix(string(line), "out_time_ms="), 10, 64);
+
          if (err == nil) {
             if (progressChan != nil) {
                progressChan <- model.EncodeProgress{file, cacheDir, currentTimeUS / 1000, videoDurationMS, false};
