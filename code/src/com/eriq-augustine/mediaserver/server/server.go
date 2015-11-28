@@ -146,6 +146,9 @@ func LoadConfig() {
    config.LoadFile(*filetypesPath);
 
    if (*prod && config.Has("prodConfig")) {
+      log.SetDebug(false);
       config.LoadFile(config.GetString("prodConfig"));
+   } else {
+      log.SetDebug(true);
    }
 }
