@@ -128,7 +128,14 @@ func extractSubtitlesFromFile(path string, cacheDir string, nextSubFileIndex int
       "-loglevel", "warning", // Be pretty quiet.
    };
 
+   hasSubtitles := false;
    for _, subStream := range(streamInfo.Subtitle) {
+      // Skip bitmap subtitles (because they need to be OCR'd.
+      subType, exists := subStream["codec_name"];
+      if (exists && subType == "dvdsub") {
+         continue;
+      }
+
       lang := "und";
       if (util.MapHasKey(subStream, "lang")) {
          lang = subStream["lang"];
@@ -143,6 +150,12 @@ func extractSubtitlesFromFile(path string, cacheDir string, nextSubFileIndex int
 
       args = append(args, streamArgs...);
       nextSubFileIndex++;
+      hasSubtitles = true;
+   }
+
+   // No valid subtitles were found.
+   if (!hasSubtitles) {
+      return nextSubFileIndex;
    }
 
    cmd := exec.Command(config.GetString("ffmpegPath"), args...);
