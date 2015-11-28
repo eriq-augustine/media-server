@@ -51,10 +51,11 @@
    margin-bottom: 10px;
 }
 
-.encode-list-element span {
+.encode-list-element a {
    color: #DDE3F3;
    font-size: 20px;
    word-wrap: break-word;
+   text-decoration: none;
 }
 
 .encode-list-element progress {

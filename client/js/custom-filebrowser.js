@@ -152,9 +152,9 @@ mediaserver.renderEncodeActivity = function(encodeActivity) {
 mediaserver._renderEncodeActivityItem = function(file) {
    var encodeActivityItem = document.createElement('div');
    encodeActivityItem.className = 'encode-list-element';
-   encodeActivityItem.addEventListener('click', filebrowser.nav.changeTarget.bind(window, '/' + file.DirEntry.AbstractPath));
 
-   var fileName = document.createElement('span');
+   var fileName = document.createElement('a');
+   fileName.setAttribute('href', '#' + filebrowser.nav.encodeForHash('/' + file.DirEntry.AbstractPath));
    fileName.textContent = file.DirEntry.Name;
 
    encodeActivityItem.appendChild(fileName);

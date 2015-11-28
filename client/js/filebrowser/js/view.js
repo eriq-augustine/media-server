@@ -49,7 +49,7 @@ filebrowser.view._getFileIcon = function(listing) {
    return icon;
 }
 
-filebrowser.view._generateFileLabel = function(listing) {
+filebrowser.view._generateFileLabel = function(listing, path) {
    var icon = filebrowser.view._getFileIcon(listing);
    var iconElement = document.createElement('i');
    iconElement.className = 'fa fa-fw fa-' + icon;
@@ -57,17 +57,18 @@ filebrowser.view._generateFileLabel = function(listing) {
    var labelElement = document.createElement('span');
    labelElement.appendChild(document.createTextNode(listing.name));
 
-   var labelContainer = document.createElement('span');
+   var labelContainer = document.createElement('a');
    labelContainer.className = 'filebrowser-label-container';
+   labelContainer.setAttribute('href', '#' + filebrowser.nav.encodeForHash(filebrowser.util.joinURL(path, listing.name)));
    labelContainer.appendChild(iconElement);
    labelContainer.appendChild(labelElement);
 
    return labelContainer;
 }
 
-filebrowser.view_fileToTableRow = function(file) {
+filebrowser.view_fileToTableRow = function(file, path) {
    var typeName = filebrowser.filetypes.getFileClass(file) || 'unknown';
-   var data = [filebrowser.view._generateFileLabel(file), filebrowser.util.formatDate(file.modDate), typeName, filebrowser.util.bytesToHuman(file.size)];
+   var data = [filebrowser.view._generateFileLabel(file, path), filebrowser.util.formatDate(file.modDate), typeName, filebrowser.util.bytesToHuman(file.size)];
    return filebrowser.view._arrayToTableRow(data, false);
 }
 
@@ -81,10 +82,8 @@ filebrowser.view._filesToTable = function(path, files) {
 
    var tableBody = document.createElement('tbody');
    files.forEach(function(file) {
-      var row = filebrowser.view_fileToTableRow(file);
-      var url = filebrowser.util.joinURL(path, file.name);
-      row.setAttribute('data-path', url);
-      row.addEventListener('click', filebrowser.nav.changeTarget.bind(window, url));
+      var row = filebrowser.view_fileToTableRow(file, path);
+      row.setAttribute('data-path', filebrowser.util.joinURL(path, file.name));
       tableBody.appendChild(row);
    });
    table.appendChild(tableBody);
@@ -214,13 +213,19 @@ filebrowser.view.loadBreadcrumbs = function(breadcrumbs) {
       var breadcrumbElement = document.createElement('div');
       breadcrumbElement.className = 'filebrowser-breadcrumb';
 
-      // Don'r register a handler for the last element (we are already there).
-      if (index != breadcrumbs.length - 1) {
-         breadcrumbElement.onclick = filebrowser.nav.changeTarget.bind(window, breadcrumb.path);
-      }
+      var breadcrumbTextElement;
 
-      var breadcrumbTextElement = document.createElement('span');
-      breadcrumbTextElement.textContent = breadcrumb.display;
+      // Don'r register a handler for the last element (we are already there).
+      if (index == breadcrumbs.length - 1) {
+         breadcrumbTextElement = document.createElement('span');
+         breadcrumbTextElement.textContent = breadcrumb.display;
+         breadcrumbTextElement.className = 'filebrowser-breadcrumb-element';
+      } else {
+         breadcrumbTextElement = document.createElement('a');
+         breadcrumbTextElement.textContent = breadcrumb.display;
+         breadcrumbTextElement.className = 'filebrowser-breadcrumb-element';
+         breadcrumbTextElement.setAttribute('href', '#' + filebrowser.nav.encodeForHash(breadcrumb.path));
+      }
 
       breadcrumbElement.appendChild(breadcrumbTextElement);
       breadcrumbsElement.appendChild(breadcrumbElement);

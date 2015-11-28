@@ -53,13 +53,13 @@
 .filebrowser-breadcrumb {
 }
 
-.filebrowser-breadcrumb span {
+.filebrowser-breadcrumb-element {
    padding-right: 10px;
    padding-left: 10px;
    font-size: 20px;
    font-weight: bold;
    color: #DDE3F3;
-   cursor: pointer;
+   text-decoration: none;
 }
 
 /* Don't give special styling to the last element. */
@@ -81,6 +81,7 @@
 .filebrowser-label-container {
    font-size: 20px;
    color: #DDE3F3;
+   text-decoration: none;
 }
 
 .filebrowser-icon-board {
