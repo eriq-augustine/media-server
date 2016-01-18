@@ -4,14 +4,18 @@ package api;
 // See apimethod.go before trying to make any new methods.
 
 import (
+   "fmt"
    "net/http"
+   "strings"
 
    "github.com/gorilla/mux"
-)
+   "github.com/eriq-augustine/goapi"
 
-// We need to define these as types, so we can figure it out when we want to pass params.
-type Token string;
-type UserName string;
+   "com/eriq-augustine/mediaserver/auth"
+   "com/eriq-augustine/mediaserver/config"
+   "com/eriq-augustine/mediaserver/log"
+   "com/eriq-augustine/mediaserver/messages"
+)
 
 const (
    PARAM_FILE = "file"
@@ -22,56 +26,64 @@ const (
    PARAM_USERNAME = "username"
 )
 
+func validateToken(token string, log goapi.Logger) (int, string, error) {
+   userName, err := auth.ValidateToken(token);
+   return 0, userName, err;
+}
+
 func CreateRouter(rootRedirect string) *mux.Router {
-   methods := []ApiMethod{
-      {
+   var factory goapi.ApiMethodFactory;
+
+   factory.SetLogger(log.Logger{});
+   factory.SetTokenValidator(validateToken);
+
+   methods := []goapi.ApiMethod{
+      factory.NewApiMethod(
          "auth/token/request",
          requestToken,
          false,
-         []ApiMethodParam{
-            {PARAM_USERNAME, API_PARAM_TYPE_STRING, true},
-            {PARAM_PASSHASH, API_PARAM_TYPE_STRING, true},
+         []goapi.ApiMethodParam{
+            {PARAM_USERNAME, goapi.API_PARAM_TYPE_STRING, true},
+            {PARAM_PASSHASH, goapi.API_PARAM_TYPE_STRING, true},
          },
-      },
-      {
+      ),
+      factory.NewApiMethod(
          "auth/token/invalidate",
          invalidateToken,
          true,
-         []ApiMethodParam{},
-      },
-      {
+         []goapi.ApiMethodParam{},
+      ),
+      factory.NewApiMethod(
          "auth/user/create",
          createUser,
          false,
-         []ApiMethodParam{
-            {PARAM_USERNAME, API_PARAM_TYPE_STRING, true},
-            {PARAM_PASSHASH, API_PARAM_TYPE_STRING, true},
+         []goapi.ApiMethodParam{
+            {PARAM_USERNAME, goapi.API_PARAM_TYPE_STRING, true},
+            {PARAM_PASSHASH, goapi.API_PARAM_TYPE_STRING, true},
          },
-      },
-      {
+      ),
+      factory.NewApiMethod(
          "browse/path",
          browsePath,
          true,
-         []ApiMethodParam{
-            {PARAM_PATH, API_PARAM_TYPE_STRING, false},
+         []goapi.ApiMethodParam{
+            {PARAM_PATH, goapi.API_PARAM_TYPE_STRING, false},
          },
-      },
+      ),
    };
 
    router := mux.NewRouter();
    for _, method := range(methods) {
-      method.Validate();
-      router.HandleFunc(buildApiUrl(method.Path), method.Middleware());
+      router.HandleFunc(buildApiUrl(method.Path()), method.Middleware());
    }
 
    // Handle 404 specially.
-   var notFoundApiMethod ApiMethod = ApiMethod{
+   var notFoundApiMethod goapi.ApiMethod = factory.NewApiMethod(
       "__404__", // We will not actually bind 404 to a path, so just use something to pass validation.
       notFound,
       true, // We don't give hints about our API, so require auth for everything.
-      []ApiMethodParam{}, // Not expecting any params for 404.
-   };
-   notFoundApiMethod.Validate();
+      []goapi.ApiMethodParam{}, // Not expecting any params for 404.
+   );
    router.NotFoundHandler = http.HandlerFunc(notFoundApiMethod.Middleware());
 
    // If supplied, register the root redirect.
@@ -81,4 +93,14 @@ func CreateRouter(rootRedirect string) *mux.Router {
    }
 
    return router;
+}
+
+func buildApiUrl(path string) string {
+   path = strings.TrimPrefix(path, "/");
+
+   return fmt.Sprintf("/api/v%02d/%s", config.GetIntDefault("apiVersion", 0), path);
+}
+
+func notFound() (interface{}, int) {
+   return messages.NewGeneralStatus(false, http.StatusNotFound), http.StatusNotFound;
 }

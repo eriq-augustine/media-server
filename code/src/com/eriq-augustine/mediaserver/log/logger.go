@@ -8,6 +8,9 @@ import (
    "github.com/Sirupsen/logrus"
 )
 
+// If you need to pass around a logger, you can use this to get ahold of one.
+type Logger struct {}
+
 func SetDebug(debug bool) {
    if (debug) {
       logrus.SetLevel(logrus.DebugLevel);
@@ -72,3 +75,15 @@ func FatalE(msg string, err error) {
       logrus.Fatalf("%s [%v]", msg, err);
    }
 }
+
+// Attach each of the logging methods to Logger.
+func (log Logger) Debug(msg string) { Debug(msg); }
+func (log Logger) Info(msg string) { Info(msg); }
+func (log Logger) Warn(msg string) { Warn(msg); }
+func (log Logger) WarnE(msg string, err error) { WarnE(msg, err); }
+func (log Logger) Error(msg string) { Error(msg); }
+func (log Logger) ErrorE(msg string, err error) { ErrorE(msg, err); }
+func (log Logger) Panic(msg string) { Panic(msg); }
+func (log Logger) PanicE(msg string, err error) { PanicE(msg, err); }
+func (log Logger) Fatal(msg string) { Fatal(msg); }
+func (log Logger) FatalE(msg string, err error) { FatalE(msg, err); }

@@ -6,6 +6,8 @@ package api;
 import (
    "net/http"
 
+   "github.com/eriq-augustine/goapi"
+
    "com/eriq-augustine/mediaserver/auth"
    "com/eriq-augustine/mediaserver/messages"
    "com/eriq-augustine/mediaserver/util/errors"
@@ -13,7 +15,7 @@ import (
 
 // Invalidating a token is akin to logging out.
 // Note that one must have a valid token to invalidate their own token.
-func invalidateToken(token Token) (interface{}, error) {
+func invalidateToken(token goapi.Token) (interface{}, error) {
    ok, err := auth.InvalidateToken(string(token));
 
    if (err != nil) {
