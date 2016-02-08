@@ -37,7 +37,12 @@ func readLine() string {
 }
 
 func readPassword() string {
-   return strings.TrimSpace(string(gopass.GetPasswd()));
+   pass, err := gopass.GetPasswd();
+   if (err != nil) {
+      panic(fmt.Sprintf("Failed to get passowrd: %v", err));
+   }
+
+   return strings.TrimSpace(string(pass));
 }
 
 func readBool(defaultValue bool) bool {
