@@ -30,6 +30,8 @@ var maxCacheSize uint64;
 func init() {
    cache = nil;
    maxCacheSize = 0;
+
+   go scanCache();
 }
 
 // Use these getters and setters to interact with he cache.
