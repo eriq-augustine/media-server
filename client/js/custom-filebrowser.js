@@ -77,18 +77,6 @@ mediaserver._fetch = function(path, callback) {
    });
 }
 
-mediaserver.videoTemplate = `
-   <video
-      id='main-video-player'
-      class='video-player video-js vjs-default-skin vjs-big-play-centered'
-   >
-      <source src='{{VIDEO_LINK}}' type='{{MIME_TYPE}}'>
-
-      {{SUB_TRACKS}}
-      Browser not supported.
-   </video>
-`;
-
 mediaserver.renderEncodeActivity = function(encodeActivity) {
    // If there is no activity, just the encode activity area.
    if (!encodeActivity.Progress && encodeActivity.Queue.length == 0 && encodeActivity.RecentEncodes.length == 0) {
@@ -187,7 +175,7 @@ mediaserver._renderVideo = function(file) {
 
    var subTracks = [];
    file.extraInfo.subtitles.forEach(function(sub) {
-      var match = sub.match(/sub_(\w+)_(\d+).vtt$/)
+      var match = sub.match(/sub_(\w+)_(\d+).vtt\b/)
       if (!match) {
          return;
       }
