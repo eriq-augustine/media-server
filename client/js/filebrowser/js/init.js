@@ -73,4 +73,15 @@ filebrowser.initFields._initTablesorter = function() {
       },
       type: 'numeric'
    });
+
+   $.tablesorter.addParser({
+      id: 'fileName',
+      is: function(s) { // return false so this parser is not auto detected
+         return false;
+      },
+      format: function(data) {
+         return data;
+      },
+      type: 'text'
+   });
 }

@@ -26,7 +26,9 @@ filebrowser.view._arrayToTableRow = function(data, isHeader) {
       if (typeof dataObject === 'object' && dataObject instanceof HTMLElement) {
          td.appendChild(dataObject);
       } else {
-         td.appendChild(document.createTextNode(dataObject));
+         var textElement = document.createElement('span');
+         textElement.textContent = dataObject;
+         td.appendChild(textElement);
       }
 
       tr.appendChild(td);
@@ -199,8 +201,16 @@ function _loadTableView(listing, files, path) {
    $(filebrowser.bodyContentQuery).append(table);
 
    $(filebrowser.tableQuery).tablesorter({
-      sortList: [[0,0]],
-      widgets: ['zebra']
+      sortList: [[0, 0]],
+      widgets: ['zebra'],
+      headers: {
+         0: {
+            sorter: 'fileName'
+         },
+         3: {
+            sorter: 'fileSize'
+         }
+      },
    });
 }
 
