@@ -11,7 +11,8 @@ filebrowser.filetypes.fileClasses = filebrowser.filetypes.fileClasses || {
    'text':     {renderFunction: _renderGeneralIFrame, icon: 'file-text-o'},
    'audio':    {renderFunction: _renderAudio,         icon: 'file-audio-o'},
    'image':    {renderFunction: _renderImage,         icon: 'file-image-o'},
-   'general':  {renderFunction: _renderGeneralIFrame, icon: 'file-o'},
+   'general':  {renderFunction: _renderGeneral,       icon: 'file-o'},
+   'iframe':   {renderFunction: _renderGeneralIFrame, icon: 'file-o'},
    'html':     {renderFunction: _renderGeneralIFrame, icon: 'file-code-o'},
    'video':    {renderFunction: _renderVideo,         icon: 'file-video-o'},
    'code':     {renderFunction: _renderGeneralIFrame, icon: 'file-code-o'},
@@ -33,7 +34,7 @@ filebrowser.filetypes.extensions = filebrowser.filetypes.extensions || {
    'svg':   {fileClass: 'image', mime: 'image/svg+xml'},
    'tiff':  {fileClass: 'image', mime: 'image/tiff'},
 
-   'pdf':   {fileClass: 'general', mime: 'application/pdf'},
+   'pdf':   {fileClass: 'iframe', mime: 'application/pdf'},
 
    'html':  {fileClass: 'html', mime: 'text/html'},
 
@@ -117,7 +118,7 @@ filebrowser.filetypes.renderHTML = function(file) {
    if (!filebrowser.filetypes.fileClasses[fileClass]) {
       // TODO(eriq): More error
       console.log("Error: Unknown extension: " + file.extension);
-      return {html: _renderGeneralIFrame(file)};
+      return {html: _renderGeneral(file)};
    }
 
    var renderInfo = filebrowser.filetypes.fileClasses[fileClass].renderFunction(file);
@@ -160,6 +161,16 @@ function _renderGeneralIFrame(file) {
       .replace('{{RAW_URL}}', file.directLink);
 }
 
+function _renderGeneral(file) {
+   return filebrowser.filetypes.templates.general
+      .replace('{{FULL_NAME}}', file.name)
+      .replace('{{MOD_TIME}}', filebrowser.util.formatDate(file.modDate))
+      .replace('{{SIZE}}', filebrowser.util.bytesToHuman(file.size))
+      .replace('{{TYPE}}', filebrowser.filetypes.getFileClass(file) || 'unknown')
+      .replace('{{RAW_URL}}', file.directLink)
+      .replace('{{DOWNLOAD_NAME}}', file.name)
+}
+
 function _renderAudio(file) {
    return filebrowser.filetypes.templates.audio
       .replace('{{RAW_URL}}', file.directLink)
@@ -181,6 +192,16 @@ function _renderImage(file) {
 function _renderUnsupported(file) {
    return filebrowser.filetypes.templates.unsupported.replace('{{EXTENSION}}', file.extension);
 }
+
+filebrowser.filetypes.templates.general = `
+   <div class='center'>
+      <p>{{FULL_NAME}}</p>
+      <p>Mod Time: {{MOD_TIME}}</p>
+      <p>Size: {{SIZE}}</p>
+      <p>Type: {{TYPE}}</p>
+      <p><a href='{{RAW_URL}}' download='{{DOWNLOAD_NAME}}'>Direct Download</a></p>
+   </div>
+`;
 
 filebrowser.filetypes.templates.generalIFrame = `
    <iframe src='{{RAW_URL}}'>
