@@ -26,7 +26,7 @@ filebrowser.util.basename = function(path) {
 
 // See http://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript/1203361#1203361
 filebrowser.util.ext = function(path) {
-   return path.substr((~-path.lastIndexOf(".") >>> 0) + 2);
+   return path.substr((~-path.lastIndexOf(".") >>> 0) + 2).toLowerCase();
 }
 
 filebrowser.util.formatDate = function(date) {

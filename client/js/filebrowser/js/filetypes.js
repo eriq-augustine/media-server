@@ -186,6 +186,7 @@ function _renderVideo(file) {
 function _renderImage(file) {
    return filebrowser.filetypes.templates.image
       .replace('{{RAW_URL}}', file.directLink)
+      .replace('{{BASE_NAME}}', file.basename)
       .replace('{{BASE_NAME}}', file.basename);
 }
 
@@ -217,7 +218,7 @@ filebrowser.filetypes.templates.audio = `
 `;
 
 filebrowser.filetypes.templates.image = `
-   <img src='{{RAW_URL}}' title='{{BASE_NAME}}' alt='{{BASE_NAME}}'>
+   <img class='filebrowser-image' src='{{RAW_URL}}' title='{{BASE_NAME}}' alt='{{BASE_NAME}}'>
 `;
 
 filebrowser.filetypes.templates.unsupported = `

@@ -32,7 +32,7 @@ filebrowser.File = function(name, modDate, size, directLink, extraInfo) {
    if (name.indexOf('.') > -1) {
       var nameParts = name.match(/^(.*)\.([^\.]*)$/);
       this.basename = nameParts[1];
-      this.extension = nameParts[2];
+      this.extension = nameParts[2].toLowerCase();
    } else {
       this.basename = name;
       this.extension = '';

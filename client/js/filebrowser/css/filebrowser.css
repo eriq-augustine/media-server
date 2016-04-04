@@ -9,6 +9,7 @@
 }
 
 .filebrowser-head-area {
+   min-height: 1em;
    display: flex;
    flex-direction: row;
    flex-wrap: nowrap;
@@ -76,6 +77,10 @@
 .filebrowser-body-area {
    flex-grow: 1;
    margin-top: 10px;
+}
+
+.filebrowser-body-content img.filebrowser-image {
+   max-width: 100%;
 }
 
 .filebrowser-label-container {
