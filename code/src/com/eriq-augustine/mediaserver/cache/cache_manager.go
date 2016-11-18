@@ -30,7 +30,10 @@ var maxCacheSize uint64;
 func init() {
    cache = nil;
    maxCacheSize = 0;
+}
 
+// Load the cache from disk.
+func Load() {
    go scanCache();
 }
 
@@ -75,6 +78,7 @@ func setCachedPoster(cacheDir string, posterPath string) {
 
    cacheEntry.SetPoster(&posterPath);
    internalSetCacheEntry(cacheDir, cacheEntry);
+   saveCache(cacheDir);
 }
 
 func setCachedSubtitles(cacheDir string, subtitles []string) {
@@ -86,8 +90,10 @@ func setCachedSubtitles(cacheDir string, subtitles []string) {
 
    cacheEntry.SetSubtitles(&subtitles);
    internalSetCacheEntry(cacheDir, cacheEntry);
+   saveCache(cacheDir);
 }
 
+// Update a cache entry after an encode is complete.
 func setCachedVideoEncode(cacheDir string, videoEncode model.CompleteEncode) {
    cacheEntry, ok := internalGetCacheEntry(cacheDir);
 
@@ -97,6 +103,7 @@ func setCachedVideoEncode(cacheDir string, videoEncode model.CompleteEncode) {
 
    cacheEntry.SetVideoEncode(&videoEncode);
    internalSetCacheEntry(cacheDir, cacheEntry);
+   saveCache(cacheDir);
 }
 
 // Calling this will persist the cache entry to disk.
@@ -154,6 +161,9 @@ func internalSetCacheEntry(cacheDir string, cacheEntry CacheEntry) {
 func scanCache() {
    cacheLock.Lock();
    defer cacheLock.Unlock();
+
+   cache = nil;
+   maxCacheSize = 0;
 
    cacheScan := make(map[string]CacheEntry);
    completeEncodes := make([]model.CompleteEncode, 0);

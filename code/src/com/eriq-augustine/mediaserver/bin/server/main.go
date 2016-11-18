@@ -2,6 +2,7 @@ package main;
 
 import (
    "com/eriq-augustine/mediaserver/auth"
+   "com/eriq-augustine/mediaserver/cache"
    "com/eriq-augustine/mediaserver/server"
 );
 
@@ -10,6 +11,8 @@ func main() {
 
    // It is safe to load users after the configs have been loaded.
    auth.LoadUsers();
+
+   cache.Load();
 
    server.StartServer();
 }

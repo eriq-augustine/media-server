@@ -3,6 +3,7 @@ package cache;
 // Code for requesting encodes, keeping track of the progress, and recently encoded files.
 
 import (
+   "sort"
    "sync"
    "time"
 
@@ -52,6 +53,8 @@ func getEncodeStatus() model.EncodeStatus {
    };
 }
 
+// Add complete encodes to the manager.
+// These will typically come from scanning the cache after initialization.
 func loadRecentVideoEncodes(encodes []model.CompleteEncode) {
    encodeMutex.Lock();
    defer encodeMutex.Unlock();
@@ -61,6 +64,7 @@ func loadRecentVideoEncodes(encodes []model.CompleteEncode) {
    }
 
    complete = encodes;
+   sort.Sort(ByCompleteTime(complete));
 }
 
 func removeEncode(cacheDir string) {
@@ -168,7 +172,9 @@ func encodeComplete() {
    completeEncode := model.CompleteEncode{inProgress.File, time.Now(), getEncodePath(cacheDir), cacheDir};
 
    // Settle the finished encode.
-   complete = append(complete, completeEncode);
+   // Make sure to prepend the encode so it does not get cut out when we
+   // choose only the most recent encodes to send to the users.
+   complete = append([]model.CompleteEncode{completeEncode}, complete...);
    inProgress = nil;
    progress = nil;
 
@@ -176,3 +182,10 @@ func encodeComplete() {
 
    startNextEncode();
 }
+
+// Sort complete encodes by time.
+type ByCompleteTime []model.CompleteEncode;
+
+func (this ByCompleteTime) Len() int { return len(this); }
+func (this ByCompleteTime) Swap(i int, j int) { this[i], this[j] = this[j], this[i]; }
+func (this ByCompleteTime) Less(i int, j int) bool { return this[i].CompleteTime.Before(this[j].CompleteTime); }
