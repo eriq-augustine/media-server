@@ -188,4 +188,4 @@ type ByCompleteTime []model.CompleteEncode;
 
 func (this ByCompleteTime) Len() int { return len(this); }
 func (this ByCompleteTime) Swap(i int, j int) { this[i], this[j] = this[j], this[i]; }
-func (this ByCompleteTime) Less(i int, j int) bool { return this[i].CompleteTime.Before(this[j].CompleteTime); }
+func (this ByCompleteTime) Less(i int, j int) bool { return this[i].CompleteTime.After(this[j].CompleteTime); }
