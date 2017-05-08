@@ -14,6 +14,16 @@
    justify-content: space-between;
 }
 
+.filebrowser-body-content {
+   width: 100%;
+   height: 100%;
+}
+
+.filebrowser-body-content > iframe  {
+   width: 100%;
+   height: 100%;
+}
+
 #mediaserver-filebrowser {
    flex-grow: 1;
 }
