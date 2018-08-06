@@ -3,6 +3,9 @@ mediaserver
 
 A web frontend to a media server.
 
+If you want the version that does encoding, use the `encode` branch.
+To simplify, encoding and cache work has been dropped.
+
 # Configuration
 
 You can see a full sample configuration file in code/config/config-sample.json.
