@@ -54,7 +54,6 @@ func (dirEntry DirEntry) Safe() DirEntry {
 
 type File struct {
    RawLink string
-   CacheLink *string
    Poster *string
    Subtitles []string
    DirEntry DirEntry
@@ -77,7 +76,6 @@ func NewFile(path string, dirEnt DirEntry) (File, error) {
 func (file File) Safe() File {
    return File{
       RawLink: file.RawLink,
-      CacheLink: file.CacheLink,
       Poster: file.Poster,
       Subtitles: file.Subtitles,
       DirEntry: file.DirEntry.Safe(),

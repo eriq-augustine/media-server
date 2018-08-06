@@ -4,7 +4,6 @@ import (
    "net/http"
    "os"
 
-   "com/eriq-augustine/mediaserver/cache"
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/messages"
@@ -78,7 +77,5 @@ func serveFile(osFile *os.File, path string) (interface{}, int, error) {
       return "", 0, err;
    }
 
-   file, cacheReady := cache.NegotiateCache(file);
-
-   return messages.NewViewFile(file, cacheReady), 0, nil;
+   return messages.NewViewFile(file), 0, nil;
 }

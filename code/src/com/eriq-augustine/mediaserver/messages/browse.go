@@ -22,10 +22,9 @@ func NewListDir(dirEntries []model.DirEntry) *ListDir {
 type ViewFile struct {
    Success bool
    IsDir bool
-   CacheReady bool
    File model.File
 }
 
-func NewViewFile(file model.File, cacheReady bool) *ViewFile {
-   return &ViewFile{true, false, cacheReady, file.Safe()};
+func NewViewFile(file model.File) *ViewFile {
+   return &ViewFile{true, false, file.Safe()};
 }

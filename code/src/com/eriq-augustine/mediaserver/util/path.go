@@ -107,12 +107,3 @@ func RawLink(path string) (string, error) {
 
    return filepath.Join("/", config.GetString("rawBaseURL"), abstractPath), nil;
 }
-
-func CacheLink(path string) (string, error) {
-   abstractPath, err := AbstractPath(path, config.GetString("cacheBaseDir"));
-   if (err != nil) {
-      return "", err;
-   }
-
-   return filepath.Join("/", config.GetString("cacheBaseURL"), abstractPath), nil;
-}

@@ -10,12 +10,10 @@
    "httpsKeyFile": "config/domain.key",
 
    "staticBaseDir": "/srv/mediaserver",
-   "cacheBaseDir": "/srv/cache",
 
-   "clientBaseDir": "../client",
+   "clientBaseDir": "src/github.com/eriq-augustine/elfs-api/client",
 
    "rawBaseURL": "raw",
-   "cacheBaseURL": "cache",
    "clientBaseURL": "client",
 
    "apiVersion": 0,
@@ -23,13 +21,6 @@
    "usersFile": "config/users.json",
 
    "showHiddenFiles": false,
-
-   "ffmpegPath": "/usr/bin/ffmpeg",
-   "ffprobePath": "/usr/bin/ffprobe",
-   "encodingThreads": 7,
-
-   "cacheUpperThresholdGB": 50,
-   "cacheLowerThresholdGB": 40,
 
    "favicon": "89504e470d0a1a0a0000000d4948445200000020000000200806000000737a7af40000013e494441545885edd62f4b44411405f0dfcab288980c369b49c1b0a8c1e007305a156c82d1e42730983658c42676c562d92a066d62b06a105130c90a2268f009cf65de3f1fbb4f580f4cb86fcedc732e73e7cd30e8a8955c3f82f50cce3e3a25758218451b1f19a31d712b11cf345143eb1706e6b1108b8fb0d9c5696139169fe322942c6f1549e3188d40de463497b5be94f809eaa1aa22d4234e628edab78b08a7784e4918c723b6f09ec1ab6307e3513c86a53821eea89953bc0c9a71cda13e08a6a27203690d3493311fc203ee03df27318cebd0a2a41e7852fc546c07f2efe215b751fca3078a5658045338c06c1aa9573db08acb2c718aef711e347198975cf929f837d00b031dbc5569e00673b8abca005c611a7b551980176c60cdd7d59d88c1be8ebbff842b58ecb1e6443ce87e92f51d7f620bceaa3631d8f804c626861a3e06283e0000000049454e44ae426082"
 }

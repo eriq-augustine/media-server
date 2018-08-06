@@ -21,13 +21,11 @@ import (
 
 const (
    DEFAULT_BASE_CONFIG_PATH = "config/config.json"
-   DEFAULT_FILETYPES_CONFIG_PATH = "config/filetypes.json"
 )
 
 // Flags
 var (
    configPath = flag.String("config", DEFAULT_BASE_CONFIG_PATH, "Path to the configuration file to use")
-   filetypesPath = flag.String("filetypes", DEFAULT_FILETYPES_CONFIG_PATH, "Path to the filetypes configuration")
    prod = flag.Bool("prod", false, "Use prodution configuration")
 )
 
@@ -87,22 +85,17 @@ func BasicFileServer(urlPrefix string, baseDir string) http.Handler {
 // Note that this will block until the server crashes.
 func StartServer() {
    rawPrefix := "/" + config.GetString("rawBaseURL") + "/";
-   cachePrefix := "/" + config.GetString("cacheBaseURL") + "/";
    clientPrefix := "/" + config.GetString("clientBaseURL") + "/";
 
    router := api.CreateRouter(clientPrefix);
 
-   // Attach additional prefixes for serving raw, cached, and client files.
-   // The raw and cached servers get auth.
+   // Attach additional prefixes for serving raw and client files.
+   // The raw server get auth.
    http.HandleFunc(rawPrefix, AuthFileServer(rawPrefix, config.GetString("staticBaseDir")));
-   http.HandleFunc(cachePrefix, AuthFileServer(cachePrefix, config.GetString("cacheBaseDir")));
    http.Handle(clientPrefix, BasicFileServer(clientPrefix, config.GetString("clientBaseDir")));
 
    http.HandleFunc("/favicon.ico", serveFavicon);
    http.HandleFunc("/robots.txt", serveRobots);
-
-   // Websocket
-   http.Handle("/ws", ws.Handler(websocket.SocketHandler));
 
    http.Handle("/", router);
 
@@ -113,12 +106,12 @@ func StartServer() {
       if (config.GetBoolDefault("forwardHttp", false) && config.Has("httpPort")) {
          httpPort := config.GetInt("httpPort");
 
-	 go func() {
-	    err := http.ListenAndServe(fmt.Sprintf(":%d", httpPort), http.HandlerFunc(redirectToHttps));
-	    if err != nil {
-	       log.PanicE("Failed to redirect http to https", err);
-	    }
-	 }()
+         go func() {
+            err := http.ListenAndServe(fmt.Sprintf(":%d", httpPort), http.HandlerFunc(redirectToHttps));
+            if err != nil {
+               log.PanicE("Failed to redirect http to https", err);
+            }
+         }()
       }
 
       // Serve https
@@ -143,7 +136,6 @@ func LoadConfig() {
    flag.Parse();
 
    config.LoadFile(*configPath);
-   config.LoadFile(*filetypesPath);
 
    if (*prod) {
       log.SetDebug(false);
