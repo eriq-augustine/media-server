@@ -16,11 +16,11 @@ import (
    "time"
 
    "github.com/eriq-augustine/elfs-api/apierrors"
+   "github.com/eriq-augustine/golog"
    "golang.org/x/crypto/bcrypt"
 
    "com/eriq-augustine/mediaserver/config"
-   "com/eriq-augustine/mediaserver/log"
-   "com/eriq-augustine/mediaserver/model"
+   "com/eriq-augustine/mediaserver/user"
    "com/eriq-augustine/mediaserver/util"
 )
 
@@ -29,14 +29,14 @@ const (
 )
 
 // {username: User}
-var Users map[string]model.User
+var Users map[string]user.User
 // {token: username}
 var Sessions map[string]string;
 
 var createAccountMutex sync.Mutex;
 
 func init() {
-   Users = make(map[string]model.User);
+   Users = make(map[string]user.User);
    Sessions = make(map[string]string);
 }
 
@@ -86,7 +86,7 @@ func InvalidateToken(token string) (bool, error) {
 func CreateUser(username string, passhash string) (string, error) {
    bcryptHash, err := bcrypt.GenerateFromPassword([]byte(passhash), bcrypt.DefaultCost);
    if (err != nil) {
-      log.ErrorE("Could not generate bcrypt hash", err);
+      golog.ErrorE("Could not generate bcrypt hash", err);
       return "", err;
    }
 
@@ -98,7 +98,7 @@ func CreateUser(username string, passhash string) (string, error) {
       return "", fmt.Errorf("Username (%s) already exists", username);
    }
 
-   Users[username] = model.User{username, string(bcryptHash), false};
+   Users[username] = user.User{username, string(bcryptHash), false};
 
    token, _:= generateToken();
    Sessions[token] = username;
@@ -112,21 +112,21 @@ func SaveUsers() {
    SaveUsersFile(config.GetString("usersFile"), Users);
 }
 
-func SaveUsersFile(usersFile string, usersMap map[string]model.User) {
-   fileUsers := make([]model.User, 0);
+func SaveUsersFile(usersFile string, usersMap map[string]user.User) {
+   fileUsers := make([]user.User, 0);
    for _, user := range(usersMap) {
       fileUsers = append(fileUsers, user);
    }
 
    jsonString, err := util.ToJSONPretty(fileUsers);
    if (err != nil) {
-      log.ErrorE("Unable to marshal users", err);
+      golog.ErrorE("Unable to marshal users", err);
       return;
    }
 
    err = ioutil.WriteFile(usersFile, []byte(jsonString), 0644);
    if (err != nil) {
-      log.ErrorE("Unable to save users", err);
+      golog.ErrorE("Unable to save users", err);
    }
 }
 
@@ -134,19 +134,19 @@ func LoadUsers() {
    Users = LoadUsersFromFile(config.GetString("usersFile"));
 }
 
-func LoadUsersFromFile(usersFile string) map[string]model.User {
-   usersMap := make(map[string]model.User);
+func LoadUsersFromFile(usersFile string) map[string]user.User {
+   usersMap := make(map[string]user.User);
 
    data, err := ioutil.ReadFile(usersFile);
    if (err != nil) {
-      log.ErrorE("Unable to read users file", err);
+      golog.ErrorE("Unable to read users file", err);
       return usersMap;
    }
 
-   var fileUsers []model.User;
+   var fileUsers []user.User;
    err = json.Unmarshal(data, &fileUsers);
    if (err != nil) {
-      log.ErrorE("Unable to unmarshal users", err);
+      golog.ErrorE("Unable to unmarshal users", err);
       return usersMap;
    }
 

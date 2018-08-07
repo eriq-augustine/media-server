@@ -3,13 +3,13 @@ package util;
 import (
    "encoding/json"
 
-   "com/eriq-augustine/mediaserver/log"
+   "github.com/eriq-augustine/golog"
 );
 
 func ToJSON(data interface{}) (string, error) {
    bytes, err := json.Marshal(data);
    if (err != nil) {
-      log.ErrorE("Error converting to JSON", err);
+      golog.ErrorE("Error converting to JSON", err);
       return "", err;
    }
 
@@ -19,7 +19,7 @@ func ToJSON(data interface{}) (string, error) {
 func ToJSONPretty(data interface{}) (string, error) {
    bytes, err := json.MarshalIndent(data, "", "   ");
    if (err != nil) {
-      log.ErrorE("Error converting to JSON", err);
+      golog.ErrorE("Error converting to JSON", err);
       return "", err;
    }
 

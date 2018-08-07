@@ -4,7 +4,7 @@ import (
    "path/filepath"
    "os"
 
-   "com/eriq-augustine/mediaserver/log"
+   "github.com/eriq-augustine/golog"
 )
 
 func RmDir(path string) {
@@ -34,7 +34,7 @@ func DirSize(path string) uint64 {
    });
 
    if (err != nil) {
-      log.ErrorE("Error getting the a directory's size (" + path + ")", err);
+      golog.ErrorE("Error getting the a directory's size (" + path + ")", err);
       return 0;
    }
 

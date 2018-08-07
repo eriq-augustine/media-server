@@ -10,7 +10,6 @@ import (
    "golang.org/x/crypto/bcrypt"
 
    "com/eriq-augustine/mediaserver/auth"
-   "com/eriq-augustine/mediaserver/model"
    "com/eriq-augustine/mediaserver/util"
 );
 
@@ -75,11 +74,11 @@ func showListing(usersFile string) {
 }
 
 func addUser(usersFile string) {
-   var usersMap map[string]model.User;
+   var usersMap map[string]user.User;
    if (util.PathExists(usersFile)) {
       usersMap = auth.LoadUsersFromFile(usersFile);
    } else {
-      usersMap = make(map[string]model.User);
+      usersMap = make(map[string]user.User);
    }
 
    fmt.Print("Username: ");
@@ -97,7 +96,7 @@ func addUser(usersFile string) {
       os.Exit(1);
    }
 
-   usersMap[username] = model.User{username, string(bcryptHash), isAdmin};
+   usersMap[username] = user.User{username, string(bcryptHash), isAdmin};
    auth.SaveUsersFile(usersFile, usersMap);
 }
 

@@ -11,17 +11,17 @@ import (
    "github.com/gorilla/mux"
    "github.com/eriq-augustine/elfs-api/messages"
    "github.com/eriq-augustine/goapi"
+   "github.com/eriq-augustine/golog"
 
    "com/eriq-augustine/mediaserver/auth"
    "com/eriq-augustine/mediaserver/config"
-   "com/eriq-augustine/mediaserver/log"
 )
 
 const (
    PARAM_FILE = "file"
    PARAM_IMAGE = "image"
    PARAM_PASSHASH = "passhash"
-   PARAM_PATH = "id"
+   PARAM_ID = "id"
    PARAM_TOKEN = "token"
    PARAM_USERNAME = "username"
 )
@@ -34,7 +34,7 @@ func validateToken(token string, log goapi.Logger) (int, string, error) {
 func CreateRouter(rootRedirect string) *mux.Router {
    var factory goapi.ApiMethodFactory;
 
-   factory.SetLogger(log.Logger{});
+   factory.SetLogger(golog.Logger{});
    factory.SetTokenValidator(validateToken);
 
    methods := []*goapi.ApiMethod{
@@ -54,22 +54,21 @@ func CreateRouter(rootRedirect string) *mux.Router {
          []goapi.ApiMethodParam{},
       ),
       factory.NewApiMethod(
-         "auth/user/create",
-         createUser,
-         false,
-         []goapi.ApiMethodParam{
-            {PARAM_USERNAME, goapi.API_PARAM_TYPE_STRING, true},
-            {PARAM_PASSHASH, goapi.API_PARAM_TYPE_STRING, true},
-         },
-      ),
-      factory.NewApiMethod(
          "browse",
          browsePath,
          true,
          []goapi.ApiMethodParam{
-            {PARAM_PATH, goapi.API_PARAM_TYPE_STRING, false},
+            {PARAM_ID, goapi.API_PARAM_TYPE_STRING, false},
          },
       ),
+      factory.NewApiMethod(
+         "contents",
+         getFileContents,
+         true,
+         []goapi.ApiMethodParam{
+            {PARAM_ID, goapi.API_PARAM_TYPE_STRING, true},
+         },
+      ).SetAllowTokenParam(true),
    };
 
    router := mux.NewRouter();

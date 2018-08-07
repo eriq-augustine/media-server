@@ -9,7 +9,7 @@ import (
    "math"
    "os"
 
-   "com/eriq-augustine/mediaserver/log"
+   "github.com/eriq-augustine/golog"
 );
 
 var options map[string]interface{} = make(map[string]interface{});
@@ -22,7 +22,7 @@ func LoadFile(filename string) (bool, error) {
    file, err := os.Open(filename);
 
    if (err != nil) {
-      log.ErrorE("Could not open config file", err);
+      golog.ErrorE("Could not open config file", err);
       return false, err;
    }
    defer file.Close();
@@ -33,7 +33,7 @@ func LoadFile(filename string) (bool, error) {
 
    err = decoder.Decode(&fileOptions);
    if (err != nil) {
-      log.ErrorE("Unable to decode config file: " + filename, err);
+      golog.ErrorE("Unable to decode config file: " + filename, err);
       return false, err;
    }
 
@@ -64,7 +64,7 @@ func Has(key string) bool {
 func Get(key string) interface{} {
    val, present := options[key];
    if (!present) {
-      log.Panic(fmt.Sprintf("Option (%s) does not exist", key));
+      golog.Panic(fmt.Sprintf("Option (%s) does not exist", key));
    }
 
    return val;
@@ -84,7 +84,7 @@ func GetString(key string) string {
 
    stringVal, ok := val.(string);
    if (!ok) {
-      log.Panic(fmt.Sprintf("Option (%s) is not a string type", key));
+      golog.Panic(fmt.Sprintf("Option (%s) is not a string type", key));
    }
 
    return stringVal;
@@ -106,7 +106,7 @@ func GetInt(key string) int {
 
    intVal, ok := val.(int);
    if (!ok) {
-      log.Panic(fmt.Sprintf("Option (%s) is not an int type", key));
+      golog.Panic(fmt.Sprintf("Option (%s) is not an int type", key));
    }
 
    return intVal;
@@ -128,7 +128,7 @@ func GetBool(key string) bool {
 
    boolVal, ok := val.(bool);
    if (!ok) {
-      log.Panic(fmt.Sprintf("Option (%s) is not a bool type", key));
+      golog.Panic(fmt.Sprintf("Option (%s) is not a bool type", key));
    }
 
    return boolVal;
