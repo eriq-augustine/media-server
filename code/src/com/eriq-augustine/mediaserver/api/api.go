@@ -9,19 +9,19 @@ import (
    "strings"
 
    "github.com/gorilla/mux"
+   "github.com/eriq-augustine/elfs-api/messages"
    "github.com/eriq-augustine/goapi"
 
    "com/eriq-augustine/mediaserver/auth"
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
-   "com/eriq-augustine/mediaserver/messages"
 )
 
 const (
    PARAM_FILE = "file"
    PARAM_IMAGE = "image"
    PARAM_PASSHASH = "passhash"
-   PARAM_PATH = "path"
+   PARAM_PATH = "id"
    PARAM_TOKEN = "token"
    PARAM_USERNAME = "username"
 )
@@ -63,7 +63,7 @@ func CreateRouter(rootRedirect string) *mux.Router {
          },
       ),
       factory.NewApiMethod(
-         "browse/path",
+         "browse",
          browsePath,
          true,
          []goapi.ApiMethodParam{

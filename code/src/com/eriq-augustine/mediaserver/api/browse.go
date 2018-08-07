@@ -1,15 +1,22 @@
 package api;
 
 import (
+   "mime"
    "net/http"
    "os"
 
+   "github.com/eriq-augustine/elfs-api/messages"
+
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
-   "com/eriq-augustine/mediaserver/messages"
    "com/eriq-augustine/mediaserver/model"
    "com/eriq-augustine/mediaserver/util"
 );
+
+func init() {
+   // Add webvtt into the mime type.
+   mime.AddExtensionType(".vtt", "text/vtt");
+}
 
 func browsePath(path string) (interface{}, int, error) {
    log.Debug("Serving: " + path);
@@ -47,23 +54,23 @@ func browsePath(path string) (interface{}, int, error) {
 }
 
 func serveDir(file *os.File, path string) (interface{}, int, error) {
-   fileInfos, err := file.Readdir(0);
+   children, err := file.Readdir(0);
    if (err != nil) {
       return "", 0, err;
    }
 
    showHidden := config.GetBoolDefault("showHiddenFiles", false);
 
-   files := make([]model.DirEntry, 0);
-   for _, fileInfo := range(fileInfos) {
+   dirents := make([]model.DirEntry, 0);
+   for _, fileInfo := range(children) {
       if (!showHidden && util.IsHidden(fileInfo)) {
          continue;
       }
 
-      files = append(files, model.DirEntryFromInfo(fileInfo, path));
+      dirents = append(dirents, model.DirEntryFromInfo(fileInfo, path));
    }
 
-   return messages.NewListDir(files), 0, nil;
+   return messages.NewListDir(model.DirEntryFromInfo(fileInfo, path), dirents), 0, nil;
 }
 
 func serveFile(osFile *os.File, path string) (interface{}, int, error) {

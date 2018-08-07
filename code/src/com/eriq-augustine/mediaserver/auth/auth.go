@@ -15,13 +15,13 @@ import (
    "sync"
    "time"
 
+   "github.com/eriq-augustine/elfs-api/apierrors"
    "golang.org/x/crypto/bcrypt"
 
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
    "com/eriq-augustine/mediaserver/model"
    "com/eriq-augustine/mediaserver/util"
-   "com/eriq-augustine/mediaserver/util/errors"
 )
 
 const (
@@ -44,12 +44,12 @@ func init() {
 func AuthenticateUser(username string, passhash string) (string, error) {
    _, exists := Users[username];
    if (!exists) {
-      return "", errors.TokenValidationError{errors.TOKEN_AUTH_BAD_CREDENTIALS};
+      return "", apierrors.TokenValidationError{apierrors.TOKEN_AUTH_BAD_CREDENTIALS};
    }
 
    err := bcrypt.CompareHashAndPassword([]byte(Users[username].Passhash), []byte(passhash));
    if (err != nil) {
-      return "", errors.TokenValidationError{errors.TOKEN_AUTH_BAD_CREDENTIALS};
+      return "", apierrors.TokenValidationError{apierrors.TOKEN_AUTH_BAD_CREDENTIALS};
    }
 
    token, _:= generateToken();
@@ -66,7 +66,7 @@ func RegisterToken(username string, token string) error {
 func ValidateToken(token string) (string, error) {
    username, exists := Sessions[token];
    if (!exists) {
-      return "", errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN};
+      return "", apierrors.TokenValidationError{apierrors.TOKEN_VALIDATION_NO_TOKEN};
    }
 
    return username, nil;
@@ -76,7 +76,7 @@ func ValidateToken(token string) (string, error) {
 func InvalidateToken(token string) (bool, error) {
    _, exists := Sessions[token];
    if (!exists) {
-      return false, errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN};
+      return false, apierrors.TokenValidationError{apierrors.TOKEN_VALIDATION_NO_TOKEN};
    }
 
    delete(Sessions, token);

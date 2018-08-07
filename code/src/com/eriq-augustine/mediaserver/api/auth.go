@@ -6,11 +6,11 @@ package api;
 import (
    "net/http"
 
+   "github.com/eriq-augustine/elfs-api/apierrors"
+   "github.com/eriq-augustine/elfs-api/messages"
    "github.com/eriq-augustine/goapi"
 
    "com/eriq-augustine/mediaserver/auth"
-   "com/eriq-augustine/mediaserver/messages"
-   "com/eriq-augustine/mediaserver/util/errors"
 );
 
 // Invalidating a token is akin to logging out.
@@ -28,7 +28,7 @@ func invalidateToken(token goapi.Token) (interface{}, error) {
 func requestToken(username string, passhash string) (interface{}, int, error) {
    token, err := auth.AuthenticateUser(username, passhash);
    if (err != nil) {
-      validationErr, ok := err.(errors.TokenValidationError);
+      validationErr, ok := err.(apierrors.TokenValidationError);
       if (!ok) {
          // Some other (non-validation) error.
          return "", 0, err;

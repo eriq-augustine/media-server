@@ -8,15 +8,15 @@ import (
    "strings"
 
    // The client is actually the elfs-api client.
+   "github.com/eriq-augustine/elfs-api/apierrors"
    "github.com/eriq-augustine/elfs-api/client"
+   "github.com/eriq-augustine/elfs-api/messages"
 
    "com/eriq-augustine/mediaserver/api"
    "com/eriq-augustine/mediaserver/auth"
    "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/log"
-   "com/eriq-augustine/mediaserver/messages"
    "com/eriq-augustine/mediaserver/util"
-   "com/eriq-augustine/mediaserver/util/errors"
 );
 
 const (
@@ -68,7 +68,7 @@ func AuthFileServer(urlPrefix string, baseDir string) func(response http.Respons
       _, err = auth.ValidateToken(token);
       if (err != nil) {
          log.WarnE("Bad token request", err);
-         jsonResponse, _ := util.ToJSON(messages.NewRejectedToken(errors.TokenValidationError{errors.TOKEN_VALIDATION_NO_TOKEN}));
+         jsonResponse, _ := util.ToJSON(messages.NewRejectedToken(apierrors.TokenValidationError{apierrors.TOKEN_VALIDATION_NO_TOKEN}));
          response.WriteHeader(http.StatusUnauthorized)
          fmt.Fprintln(response, jsonResponse);
          return;
