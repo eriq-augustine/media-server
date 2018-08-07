@@ -9,9 +9,8 @@ import (
 
    "github.com/eriq-augustine/elfs/dirent"
    "github.com/eriq-augustine/elfs-api/model"
+   "github.com/eriq-augustine/goconfig"
    "github.com/eriq-augustine/golog"
-
-   "com/eriq-augustine/mediaserver/config"
 );
 
 const (
@@ -110,7 +109,7 @@ func RandomString(length int) string {
 
 // Take in an abstract path from the clinet and convert it into a real path.
 func RealPath(path string) (string, error) {
-   cleanPath := filepath.Join(config.GetString("staticBaseDir"), strings.TrimPrefix(path, "/"));
+   cleanPath := filepath.Join(goconfig.GetString("staticBaseDir"), strings.TrimPrefix(path, "/"));
 
    cleanPath, err := filepath.Abs(cleanPath);
    if (err != nil) {
@@ -120,7 +119,7 @@ func RealPath(path string) (string, error) {
    cleanPath = filepath.Clean(cleanPath);
 
    // Ensure that the path is inside the root directory.
-   relPath, err := filepath.Rel(config.GetString("staticBaseDir"), cleanPath);
+   relPath, err := filepath.Rel(goconfig.GetString("staticBaseDir"), cleanPath);
    if (err != nil) {
       return "", err;
    }
@@ -135,7 +134,7 @@ func RealPath(path string) (string, error) {
 // Given a real path, find an abstract path for it.
 // Abstract paths are just relative paths from the static base directory.
 func AbstractPath(realPath string) (string, error) {
-   var baseDir string = config.GetString("staticBaseDir");
+   var baseDir string = goconfig.GetString("staticBaseDir");
 
    abstractPath, err := filepath.Rel(baseDir, realPath);
    if (err != nil) {

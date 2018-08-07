@@ -11,10 +11,10 @@ import (
    "github.com/gorilla/mux"
    "github.com/eriq-augustine/elfs-api/messages"
    "github.com/eriq-augustine/goapi"
+   "github.com/eriq-augustine/goconfig"
    "github.com/eriq-augustine/golog"
 
    "com/eriq-augustine/mediaserver/auth"
-   "com/eriq-augustine/mediaserver/config"
 )
 
 const (
@@ -97,7 +97,7 @@ func CreateRouter(rootRedirect string) *mux.Router {
 func buildApiUrl(path string) string {
    path = strings.TrimPrefix(path, "/");
 
-   return fmt.Sprintf("/api/v%02d/%s", config.GetIntDefault("apiVersion", 0), path);
+   return fmt.Sprintf("/api/v%02d/%s", goconfig.GetIntDefault("apiVersion", 0), path);
 }
 
 func notFound() (interface{}, int) {

@@ -11,11 +11,11 @@ import (
    "github.com/eriq-augustine/elfs-api/apierrors"
    "github.com/eriq-augustine/elfs-api/client"
    "github.com/eriq-augustine/elfs-api/messages"
+   "github.com/eriq-augustine/goconfig"
    "github.com/eriq-augustine/golog"
 
    "com/eriq-augustine/mediaserver/api"
    "com/eriq-augustine/mediaserver/auth"
-   "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/util"
 );
 
@@ -30,7 +30,7 @@ var (
 )
 
 func serveFavicon(response http.ResponseWriter, request *http.Request) {
-   dataBytes, err := hex.DecodeString(config.GetStringDefault("favicon", ""));
+   dataBytes, err := hex.DecodeString(goconfig.GetStringDefault("favicon", ""));
 
    if (err != nil) {
       response.WriteHeader(http.StatusInternalServerError);
@@ -47,7 +47,7 @@ func serveRobots(response http.ResponseWriter, request *http.Request) {
 }
 
 func redirectToHttps(response http.ResponseWriter, request *http.Request) {
-   http.Redirect(response, request, fmt.Sprintf("https://%s:%d/%s", request.Host, config.GetInt("httpsPort"), request.RequestURI), http.StatusFound);
+   http.Redirect(response, request, fmt.Sprintf("https://%s:%d/%s", request.Host, goconfig.GetInt("httpsPort"), request.RequestURI), http.StatusFound);
 }
 
 func AuthFileServer(urlPrefix string, baseDir string) func(response http.ResponseWriter, request *http.Request) {
@@ -84,16 +84,16 @@ func BasicFileServer(urlPrefix string, baseDir string) http.Handler {
 
 // Note that this will block until the server crashes.
 func StartServer() {
-   rawPrefix := "/" + config.GetString("rawBaseURL") + "/";
-   clientPrefix := "/" + config.GetString("clientBaseURL") + "/";
+   rawPrefix := "/" + goconfig.GetString("rawBaseURL") + "/";
+   clientPrefix := "/" + goconfig.GetString("clientBaseURL") + "/";
 
    router := api.CreateRouter(clientPrefix);
 
    // Attach additional prefixes for serving raw and client files.
    // The raw server get auth.
-   http.HandleFunc(rawPrefix, AuthFileServer(rawPrefix, config.GetString("staticBaseDir")));
+   http.HandleFunc(rawPrefix, AuthFileServer(rawPrefix, goconfig.GetString("staticBaseDir")));
 
-   http.Handle(clientPrefix, BasicFileServer(clientPrefix, config.GetString("clientBaseDir")));
+   http.Handle(clientPrefix, BasicFileServer(clientPrefix, goconfig.GetString("clientBaseDir")));
    client.Init();
 
    http.HandleFunc("/favicon.ico", serveFavicon);
@@ -101,12 +101,12 @@ func StartServer() {
 
    http.Handle("/", router);
 
-   if (config.GetBool("useSSL")) {
-      httpsPort := config.GetInt("httpsPort");
+   if (goconfig.GetBool("useSSL")) {
+      httpsPort := goconfig.GetInt("httpsPort");
 
       // Forward http
-      if (config.GetBoolDefault("forwardHttp", false) && config.Has("httpPort")) {
-         httpPort := config.GetInt("httpPort");
+      if (goconfig.GetBoolDefault("forwardHttp", false) && goconfig.Has("httpPort")) {
+         httpPort := goconfig.GetInt("httpPort");
 
          go func() {
             err := http.ListenAndServe(fmt.Sprintf(":%d", httpPort), http.HandlerFunc(redirectToHttps));
@@ -119,12 +119,12 @@ func StartServer() {
       // Serve https
       golog.Info(fmt.Sprintf("Starting media server on https port %d", httpsPort));
 
-      err := http.ListenAndServeTLS(fmt.Sprintf(":%d", httpsPort), config.GetString("httpsCertFile"), config.GetString("httpsKeyFile"), nil);
+      err := http.ListenAndServeTLS(fmt.Sprintf(":%d", httpsPort), goconfig.GetString("httpsCertFile"), goconfig.GetString("httpsKeyFile"), nil);
       if err != nil {
          golog.PanicE("Failed to server https", err);
       }
    } else {
-      port := config.GetInt("httpPort");
+      port := goconfig.GetInt("httpPort");
       golog.Info(fmt.Sprintf("Starting media server on http port %d", port));
 
       err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil);
@@ -137,13 +137,13 @@ func StartServer() {
 func LoadConfig() {
    flag.Parse();
 
-   config.LoadFile(*configPath);
+   goconfig.LoadFile(*configPath);
 
    if (*prod) {
       golog.SetDebug(false);
 
-      if (config.Has("prodConfig")) {
-         config.LoadFile(config.GetString("prodConfig"));
+      if (goconfig.Has("prodConfig")) {
+         goconfig.LoadFile(goconfig.GetString("prodConfig"));
       }
    } else {
       golog.SetDebug(true);

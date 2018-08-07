@@ -10,6 +10,7 @@ import (
    "golang.org/x/crypto/bcrypt"
 
    "com/eriq-augustine/mediaserver/auth"
+   "com/eriq-augustine/mediaserver/user"
    "com/eriq-augustine/mediaserver/util"
 );
 

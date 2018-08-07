@@ -7,10 +7,10 @@ import (
 
    "github.com/eriq-augustine/elfs-api/messages"
    "github.com/eriq-augustine/elfs-api/model"
+   "github.com/eriq-augustine/goconfig"
    "github.com/eriq-augustine/golog"
    "github.com/pkg/errors"
 
-   "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/util"
 );
 
@@ -49,7 +49,7 @@ func serveDir(file *os.File, fileInfo os.FileInfo, path string) (interface{}, in
       return "", 0, err;
    }
 
-   showHidden := config.GetBoolDefault("showHiddenFiles", false);
+   showHidden := goconfig.GetBoolDefault("showHiddenFiles", false);
 
    dirents := make([]*model.DirEntry, 0);
    for _, childFileInfo := range(children) {
@@ -102,7 +102,7 @@ func getFileInfo(path string) (*os.File, os.FileInfo, interface{}, int, error) {
    }
 
    // 404 if we shouldn't be seeing this file.
-   if (!config.GetBoolDefault("showHiddenFiles", false) && util.IsHidden(fileInfo)) {
+   if (!goconfig.GetBoolDefault("showHiddenFiles", false) && util.IsHidden(fileInfo)) {
       return nil, nil, messages.NewGeneralStatus(false, http.StatusNotFound), http.StatusNotFound, nil;
    }
 

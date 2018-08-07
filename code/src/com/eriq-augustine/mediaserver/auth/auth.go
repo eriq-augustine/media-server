@@ -16,10 +16,10 @@ import (
    "time"
 
    "github.com/eriq-augustine/elfs-api/apierrors"
+   "github.com/eriq-augustine/goconfig"
    "github.com/eriq-augustine/golog"
    "golang.org/x/crypto/bcrypt"
 
-   "com/eriq-augustine/mediaserver/config"
    "com/eriq-augustine/mediaserver/user"
    "com/eriq-augustine/mediaserver/util"
 )
@@ -109,7 +109,7 @@ func CreateUser(username string, passhash string) (string, error) {
 }
 
 func SaveUsers() {
-   SaveUsersFile(config.GetString("usersFile"), Users);
+   SaveUsersFile(goconfig.GetString("usersFile"), Users);
 }
 
 func SaveUsersFile(usersFile string, usersMap map[string]user.User) {
@@ -131,7 +131,7 @@ func SaveUsersFile(usersFile string, usersMap map[string]user.User) {
 }
 
 func LoadUsers() {
-   Users = LoadUsersFromFile(config.GetString("usersFile"));
+   Users = LoadUsersFromFile(goconfig.GetString("usersFile"));
 }
 
 func LoadUsersFromFile(usersFile string) map[string]user.User {
