@@ -23,7 +23,6 @@ func showUsage() {
    fmt.Println("   list (ls)   - list the users present the the given file");
    fmt.Println("   add (a)     - add a user to the given file (will create the file if it does not exist)");
    fmt.Println("   remove (rm) - remove a user from the given file");
-   fmt.Println("   edit (e)    - edit a user in the given file");
    fmt.Println("   help (h)    - print this message and exit");
 }
 
@@ -61,18 +60,6 @@ func readBool(defaultValue bool) bool {
    }
 }
 
-func bcryptPass(username string, password string) string {
-   passhash := util.Passhash(username, password);
-
-   bcryptHash, err := bcrypt.GenerateFromPassword([]byte(passhash), bcrypt.DefaultCost);
-   if (err != nil) {
-      fmt.Println("Could not generate bcrypt hash: " + err.Error());
-      os.Exit(1);
-   }
-
-   return string(bcryptHash);
-}
-
 func showListing(usersFile string) {
    if (!util.PathExists(usersFile)) {
       fmt.Printf("Users file (%s) does not exist.\n", usersFile);
@@ -99,12 +86,18 @@ func addUser(usersFile string) {
    username := readLine();
 
    fmt.Print("Password: ");
-   password := bcryptPass(username, readPassword());
+   passhash := util.Passhash(username, readPassword());
 
    fmt.Print("Is Admin [y/N]: ");
    isAdmin := readBool(false);
 
-   usersMap[username] = model.User{username, password, isAdmin};
+   bcryptHash, err := bcrypt.GenerateFromPassword([]byte(passhash), bcrypt.DefaultCost);
+   if (err != nil) {
+      fmt.Printf("Could not generate bcrypt hash: %g", err);
+      os.Exit(1);
+   }
+
+   usersMap[username] = model.User{username, string(bcryptHash), isAdmin};
    auth.SaveUsersFile(usersFile, usersMap);
 }
 
@@ -129,33 +122,6 @@ func removeUser(usersFile string) {
    auth.SaveUsersFile(usersFile, usersMap);
 }
 
-func editUser(usersFile string) {
-   if (!util.PathExists(usersFile)) {
-      fmt.Printf("Users file (%s) does not exist.\n", usersFile);
-      return;
-   }
-
-   usersMap := auth.LoadUsersFromFile(usersFile);
-
-   fmt.Print("Username: ");
-   username := readLine();
-
-   _, exists := usersMap[username];
-   if (!exists) {
-      fmt.Printf("User (%s) does not exist. Exiting...", username);
-      os.Exit(1);
-   }
-
-   fmt.Print("Password: ");
-   password := bcryptPass(username, readPassword());
-
-   fmt.Print("Is Admin [y/N]: ");
-   isAdmin := readBool(false);
-
-   usersMap[username] = model.User{username, password, isAdmin};
-   auth.SaveUsersFile(usersFile, usersMap);
-}
-
 func main() {
    args := os.Args;
 
@@ -173,9 +139,6 @@ func main() {
       break;
    case "remove", "rm":
       removeUser(args[2]);
-      break;
-   case "edit", "e":
-      editUser(args[2]);
       break;
    default:
       fmt.Printf("Unknown action (%s)\n", args[1]);

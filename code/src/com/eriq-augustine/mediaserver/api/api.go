@@ -37,7 +37,7 @@ func CreateRouter(rootRedirect string) *mux.Router {
    factory.SetLogger(log.Logger{});
    factory.SetTokenValidator(validateToken);
 
-   methods := []goapi.ApiMethod{
+   methods := []*goapi.ApiMethod{
       factory.NewApiMethod(
          "auth/token/request",
          requestToken,
@@ -78,7 +78,7 @@ func CreateRouter(rootRedirect string) *mux.Router {
    }
 
    // Handle 404 specially.
-   var notFoundApiMethod goapi.ApiMethod = factory.NewApiMethod(
+   var notFoundApiMethod *goapi.ApiMethod = factory.NewApiMethod(
       "__404__", // We will not actually bind 404 to a path, so just use something to pass validation.
       notFound,
       true, // We don't give hints about our API, so require auth for everything.

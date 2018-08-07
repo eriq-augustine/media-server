@@ -7,7 +7,8 @@ import (
    "net/http"
    "strings"
 
-   ws "golang.org/x/net/websocket"
+   // The client is actually the elfs-api client.
+   "github.com/eriq-augustine/elfs-api/client"
 
    "com/eriq-augustine/mediaserver/api"
    "com/eriq-augustine/mediaserver/auth"
@@ -16,7 +17,6 @@ import (
    "com/eriq-augustine/mediaserver/messages"
    "com/eriq-augustine/mediaserver/util"
    "com/eriq-augustine/mediaserver/util/errors"
-   "com/eriq-augustine/mediaserver/websocket"
 );
 
 const (
@@ -92,7 +92,9 @@ func StartServer() {
    // Attach additional prefixes for serving raw and client files.
    // The raw server get auth.
    http.HandleFunc(rawPrefix, AuthFileServer(rawPrefix, config.GetString("staticBaseDir")));
+
    http.Handle(clientPrefix, BasicFileServer(clientPrefix, config.GetString("clientBaseDir")));
+   client.Init();
 
    http.HandleFunc("/favicon.ico", serveFavicon);
    http.HandleFunc("/robots.txt", serveRobots);
