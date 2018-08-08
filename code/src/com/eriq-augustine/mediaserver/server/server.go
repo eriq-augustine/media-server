@@ -83,15 +83,11 @@ func BasicFileServer(urlPrefix string, baseDir string) http.Handler {
 
 // Note that this will block until the server crashes.
 func StartServer() {
-   rawPrefix := "/" + goconfig.GetString("rawBaseURL") + "/";
    clientPrefix := "/" + goconfig.GetString("clientBaseURL") + "/";
 
    router := api.CreateRouter(clientPrefix);
 
-   // Attach additional prefixes for serving raw and client files.
-   // The raw server get auth.
-   http.HandleFunc(rawPrefix, AuthFileServer(rawPrefix, goconfig.GetString("staticBaseDir")));
-
+   // Serve the client.
    http.Handle(clientPrefix, BasicFileServer(clientPrefix, goconfig.GetString("clientBaseDir")));
    client.Init();
 

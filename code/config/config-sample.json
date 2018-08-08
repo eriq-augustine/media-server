@@ -13,7 +13,6 @@
 
    "clientBaseDir": "src/github.com/eriq-augustine/elfs-api/client",
 
-   "rawBaseURL": "raw",
    "clientBaseURL": "client",
 
    "apiVersion": 0,
