@@ -39,12 +39,3 @@ func requestToken(username string, passhash string) (interface{}, int, error) {
       return messages.NewAuthorizedToken(token), 0, nil;
    }
 }
-
-func createUser(username string, passhash string) (interface{}, error) {
-   token, err := auth.CreateUser(username, passhash);
-   if (err != nil) {
-      return "", err;
-   }
-
-   return messages.NewAuthorizedToken(token), nil;
-}

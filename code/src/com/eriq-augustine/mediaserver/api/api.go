@@ -1,7 +1,6 @@
 package api;
 
 // The definition of the methods used for the API.
-// See apimethod.go before trying to make any new methods.
 
 import (
    "fmt"
@@ -18,11 +17,8 @@ import (
 )
 
 const (
-   PARAM_FILE = "file"
-   PARAM_IMAGE = "image"
    PARAM_PASSHASH = "passhash"
    PARAM_ID = "id"
-   PARAM_TOKEN = "token"
    PARAM_USERNAME = "username"
 )
 

@@ -63,7 +63,6 @@ func AuthFileServer(urlPrefix string, baseDir string) func(response http.Respons
          return;
       }
 
-
       token := strings.TrimSpace(request.FormValue("token"));
       _, err = auth.ValidateToken(token);
       if (err != nil) {

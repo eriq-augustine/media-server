@@ -58,6 +58,7 @@ func AuthenticateUser(username string, passhash string) (string, error) {
    return token, nil;
 }
 
+// We just keep tokens in memory.
 func RegisterToken(username string, token string) error {
    return nil;
 }
