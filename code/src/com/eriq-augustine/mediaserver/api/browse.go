@@ -82,7 +82,7 @@ func getFileContents(path string) (interface{}, int, string, error) {
       return "", http.StatusBadRequest, "", errors.New("Cannot get the file contents of a dir.");
    }
 
-   return file, 0, mime.TypeByExtension(util.Ext(fileInfo.Name())), nil;
+   return file, 0, mime.TypeByExtension("." + util.Ext(fileInfo.Name())), nil;
 }
 
 // Caller must close the file.
