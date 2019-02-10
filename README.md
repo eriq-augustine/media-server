@@ -43,3 +43,16 @@ Password hashes are stored in this file, so you should never share it.
 
 There is currently no way to manage users online, but you can use the supplied manage-users utility to manage them.
 Invoking the utility with no arguments will give you the usage.
+
+## User Management Examples
+
+Adding a user:
+```
+code/bin/manage-users add config/users.json
+```
+Add a user to a non-existant file will just create a new file populated with that user.
+
+List the users:
+```
+code/bin/manage-users ls config/users.json
+```
